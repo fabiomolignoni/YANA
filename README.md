@@ -6,7 +6,9 @@ YANA is a news aggregator. Yes, another news aggregator. Why develop it? Well, b
 
 ## Dev TIME
 1. ``News Headlines``: salva tutte le notizie. Viene utilizzato come "database" dei miei dati. Offre interfaccia CRUD, anche se in realtà dopo si utilizzerà solo la POST e la GET. Ogni entry è definita da un JSON:
+
 {
+id: id_notizia,
 source: id_nome
 "author": nome_autore,
 "title": titolo,
@@ -17,6 +19,8 @@ source: id_nome
 "category": categoria
 "tags": [lista di tags]
 }
+
+Richiede variabile environment: MONGOOSE_URL
 
 2. ``The Verge Adapter``: trasforma xml the verge in json
 
