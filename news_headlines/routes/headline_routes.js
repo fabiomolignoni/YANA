@@ -3,7 +3,8 @@
 //=============================
 const express = require('express')
 const router = express.Router()
-var headline = require('..//models/headline');
+const { check, validationResult } = require('express-validator/check');
+var Headline = require('../models/headline_model')
 
 //=============================
 //     SET DEFAULT HEADERS
@@ -26,26 +27,105 @@ router.options("/*", function (req, res, next) {
 //=============================
 //      POST v1/headlines
 //=============================
-router.post('/', function (req, res) {
-    var headline = new Headline();      // create a new instance of headline
-    // set headline parameters
-    headline.source = req.body.source
-    headline.author = req.body.author
-    headline.title = req.body.title
-    headline.url = req.body.url
-    headline.imageUrl = req.body.imageUrl
-    headline.datetime = req.body.datetime
-    headline.body = req.body.body
-    headline.tags = req.body.tags
+router.post('/', [
+    check('source', "source is not defined").exists(),
+    check("author", "author is not defined").exists(),
+    check("title", "title is not defined").exists(),
+    check("url", "url is not defined or is not an URL").isURL(),
+    check("category", "category is not definied or is not valid").isIn(['technology', 'business'])]
+    , (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        } else {
+            Headline.create({
+                source: req.body.source,
+                author: req.body.author,
+                title: req.body.title,
+                url: req.body.url,
+                imageUrl: req.body.imageUrl,
+                datetime: req.body.datetime,
+                body: req.body.body,
+                category: req.body.category,
+                tags: req.body.tags
+            }).then(headline => res.status(201).json(headline));
+        }
+    })
 
-    // save the bear and check for errors
-    bear.save(function (err) {
-        if (err)
-            res.send(err);
-
-        res.json({ message: 'Bear created!' });
+//=============================
+//      GET v1/headlines
+//=============================
+router.get('/', (req, res) => {
+    Headline.find(req.query).exec(function (err, headlines) {
+        if (err) {
+            res.status(500).json({ "errors": [{ "msg": "internal error" }] })
+        } else {
+            res.status(200).json(headlines)
+        }
     });
+})
 
-});
+//=============================
+//      GET v1/headlines/:id
+//=============================
+router.get('/:id', (req, res) => {
+    Headline.findById(req.params.id, function (err, headlines) {
+        if (err) {
+            res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
+        } else {
+            res.status(200).json(headlines)
+        }
+    });
+})
 
+//=============================
+//      GET v1/headlines/:id
+//     DA FIXARE VALIDAZIONE
+//=============================
+router.put('/:id', (req, res) => {
+    Headline.findById(req.params.id, function (err, headline) {
+        if (err) {
+            res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
+        } else {
+            if (req.body.source !== undefined)
+                headline.source = req.body.source
+            if (req.body.author !== undefined)
+                headline.author = req.body.author
+            if (req.body.title !== undefined)
+                headline.title = req.body.title
+            if (req.body.url !== undefined)
+                headline.url = req.body.url
+            if (req.body.imageUrl !== undefined)
+                headline.imageUrl = req.body.imageUrl
+            if (req.body.datetime !== undefined)
+                headline.datetime = req.body.datetime
+            if (req.body.body !== undefined)
+                headline.body = req.body.body
+            if (req.body.category !== undefined)
+                headline.category = req.body.category
+            if (req.body.tags !== undefined)
+                headline.tags = req.body.tags
+        }
+        headline.save(function (err) {
+            if (err) {
+                res.status(500).send(err);
+            } else {
+                res.status(204).send()
+            }
+        })
+    })
+})
+
+//=============================
+//   DELETE v1/headlines/:id
+//=============================
+router.delete('/:id', (req, res) => {
+    Headline.remove({ _id: req.params.id }, function (err, headlines) {
+        if (err) {
+            res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
+        } else {
+            res.status(204).send()
+        }
+    });
+})
 module.exports = router
