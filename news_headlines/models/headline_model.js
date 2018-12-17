@@ -27,7 +27,9 @@ var HeadlineSchema = new Schema({
         type: Array,
         default: []
     }
-});
+}, {
+        versionKey: false
+    });
 
 HeadlineSchema.pre('save', function (next) {
     if (this.imageUrl === null || this.imageUrl === undefined) {
