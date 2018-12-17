@@ -38,7 +38,7 @@ router.post('/', [
             if (reqDate == 'Invalid Date' || isNaN(reqDate) || reqDate > Date.now) { // if date is not valid set it as now
                 reqDate = Date.now
             }
-            if (req.body.imageUrl === undefined || !validUrl.isURL(req.body.imageUrl)) {
+            if (req.body.imageUrl === undefined || !validUrl.isUri(req.body.imageUrl)) {
                 req.body.imageUrl = '' // if image is not valid set default value
             }
             Headline.create({ // Create new headline in DB and return the representation with status 201
@@ -97,10 +97,10 @@ router.put('/:id', (req, res) => {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {
             // update attribute only if not undefined and if attribute is valid
-            if (req.body.url !== undefined && validUrl.isURL(req.body.url)) {
+            if (req.body.url !== undefined && validUrl.isUri(req.body.url)) {
                 headline.url = req.body.url
             }
-            if (req.body.imageUrl !== undefined && validUrl.isURL(req.body.imageUrl)) {
+            if (req.body.imageUrl !== undefined && validUrl.isUri(req.body.imageUrl)) {
                 headline.imageUrl = req.body.imageUrl
             }
             var reqDate = new Date(req.body.datetime)
