@@ -7,7 +7,7 @@ const { check, validationResult } = require('express-validator/check');
 var Headline = require('../models/headline_model')
 var validUrl = require('valid-url');
 
-var possibleCategories = ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technlogy', 'politics']
+var possibleCategories = ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technology', 'politics']
 var possibleLanguages = ['en', 'ita']
 //=============================
 //     SET DEFAULT HEADERS
