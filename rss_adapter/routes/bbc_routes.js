@@ -20,100 +20,77 @@ router.use(function (req, res, next) {
 //        GET WORLD NEWS
 //=============================
 router.get('/world', (req, res) => {
-    bbcXml2Json('/world/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/world/rss.xml', res)
 })
 
 //=============================
 //        GET UK NEWS
 //=============================
 router.get('/uk', (req, res) => {
-    bbcXml2Json('/uk/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/uk/rss.xml', res)
 })
 
 //=============================
 //     GET BUSINESS NEWS
 //=============================
 router.get('/business', (req, res) => {
-    bbcXml2Json('/business/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/business/rss.xml', res)
 })
 
 //=============================
 //     GET POLITICS NEWS
 //=============================
 router.get('/politics', (req, res) => {
-    bbcXml2Json('/politics/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/politics/rss.xml', res)
 })
 
 //=============================
 //      GET HEALTH NEWS
 //=============================
 router.get('/health', (req, res) => {
-    bbcXml2Json('/health/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/health/rss.xml', res)
 })
 
 //=============================
 //    GET EDUCATION NEWS
 //=============================
 router.get('/education', (req, res) => {
-    bbcXml2Json('/education/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/education/rss.xml', res)
 })
 
 //=============================
 // ZGET SCIENCE/ENVIRONMENT NEWS
 //=============================
 router.get('/science_and_environment', (req, res) => {
-    bbcXml2Json('/science_and_environment/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/science_and_environment/rss.xml', res)
 })
 
 //=============================
 //    GET TECHNOLOGY NEWS
 //=============================
 router.get('/technology', (req, res) => {
-    bbcXml2Json('/technology/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/technology/rss.xml', res)
 })
 
 //=============================
 // GET ENTERTAINMENT/ARTS NEWS
 //=============================
 router.get('/entertainment_and_arts', (req, res) => {
-    bbcXml2Json('/entertainment_and_arts/rss.xml').then(jsonRSS => {
-        res.status(200).send(jsonRSS)
-    }).catch(e => {
-        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
-    })
+    responseBBCJSON('/entertainment_and_arts/rss.xml', res)
 })
+
+//=============================
+//     RESPONSE HANDLER
+//   Get the converted json
+//sends the json back to client
+//=============================
+function responseBBCJSON(path, res) {
+    bbcXml2Json(path).then(jsonRSS => {
+        res.status(200).json(jsonRSS)
+    }).catch(e => {
+        res.status(500).json({ "errors": [{ "msg": "internal error" }] })
+    })
+}
 
 //=============================
 //       BBC XML 2 JSON
