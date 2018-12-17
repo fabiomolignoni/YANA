@@ -1,0 +1,20 @@
+{
+  "name": "rss_adapter",
+  "version": "1.0.0",
+  "description": "Service that transforms xml rss feed into json",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fabiomolignoni/YANA/tree/master/rss_adapter"
+  },
+  "author": "Fabio Molignoni",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "morgan": "^1.9.1"
+  }
+}
