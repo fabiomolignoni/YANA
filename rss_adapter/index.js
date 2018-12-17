@@ -19,10 +19,8 @@ app.use(bodyParser.json());             // Useful to extract data from a POST
 //=============================
 //          ROUTES
 //=============================
-/*
 app.use('/v1/theverge', the_verge_routes)   // set routes
 app.use('/v1/bbc', bbc_routes)   // set routes
-*/
 //=============================
 //        START SERVER
 //=============================
