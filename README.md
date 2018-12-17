@@ -17,7 +17,7 @@ source: id_nome
 "category": categoria
 "tags": [lista di tags]
 } Richiede variabile environment: MONGOOSE_URL endpoint: https://yana-news-headlines.herokuapp.com/v1
-apiary: https://yananewsheadlineservice.docs.apiary.io/
+apiary: https://yananewsheadlinesservice.docs.apiary.io/
 
 2. ``rss Adapter``: trasforma xml the verge in jsone  trasforma xml the BBC in json endpoint: https://yana-rss-adapter.herokuapp.com apiary: https://yanarssadapter.docs.apiary.io
 
