@@ -22,6 +22,9 @@ source: id_nome
 
 Richiede variabile environment: MONGOOSE_URL
 
+endpoint: https://yana-news-headlines.herokuapp.com/v1
+apiary: https://yananewsheadlineservice.docs.apiary.io/
+
 2. ``The Verge Adapter``: trasforma xml the verge in json
 
 3. ``BBC Adapter``: trasforma xml the BBC in json
