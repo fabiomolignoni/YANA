@@ -51,7 +51,7 @@ router.post('/', [
                 datetime: req.body.datetime,
                 body: req.body.body,
                 category: req.body.category,
-                tags: req.body.tags.split("|")
+                tags: ((req.body.tags !== undefined) ? req.body.tags.split("|") : [])
             }).then(headline => res.status(201).json(headline));
         }
     })
