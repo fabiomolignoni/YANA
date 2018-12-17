@@ -51,7 +51,7 @@ router.post('/', [
                 datetime: req.body.datetime,
                 body: req.body.body,
                 category: req.body.category,
-                tags: req.body.tags
+                tags: req.body.tags.split("|")
             }).then(headline => res.status(201).json(headline));
         }
     })
@@ -101,7 +101,7 @@ router.put('/:id', (req, res) => {
                 headline.imageUrl = req.body.imageUrl
             }
             var reqDate = new Date(req.body.datetime)
-            if (reqDate != 'Invalid Date' && !isNaN(reqDate) && reqDate <= Date.now) { // if date is not valid set it as now
+            if (reqDate != 'Invalid Date' && !isNaN(reqDate) && reqDate <= Date.now()) { // if date is not valid set it as now
                 headline.datetime = reqDate
             }
             if (possibleCategories.includes(req.body.category)) {
@@ -114,7 +114,7 @@ router.put('/:id', (req, res) => {
             headline.author = ((req.body.author !== undefined) ? req.body.author : headline.author)
             headline.title = ((req.body.title !== undefined) ? req.body.title : headline.title)
             headline.body = ((req.body.body !== undefined) ? req.body.body : headline.body)
-            headline.tags = ((req.body.tags !== undefined) ? req.body.tags : headline.tags)
+            headline.tags = ((req.body.tags !== undefined) ? req.body.tags.split("|") : headline.tags)
         }
         headline.save(function (err) { // update entry in DB
             if (err) {
