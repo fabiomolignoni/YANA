@@ -83,7 +83,7 @@ router.get('/education', (req, res) => {
 })
 
 //=============================
-//   GET SCIENCE/ENVIRONMENT NEWS
+// ZGET SCIENCE/ENVIRONMENT NEWS
 //=============================
 router.get('/science_and_environment', (req, res) => {
     bbcXml2Json('/science_and_environment/rss.xml').then(jsonRSS => {
@@ -117,7 +117,7 @@ router.get('/entertainment_and_arts', (req, res) => {
 
 //=============================
 //       BBC XML 2 JSON
-// Get the xml file from https://<endpoint>/<path>
+// Get the xml file from http://<endpoint>/<path>
 // It converts the xml into suitable json
 // Returns a promise
 //=============================
