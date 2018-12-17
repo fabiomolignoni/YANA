@@ -59,7 +59,7 @@ router.get('/education', (req, res) => {
 })
 
 //=============================
-// ZGET SCIENCE/ENVIRONMENT NEWS
+// GET SCIENCE/ENVIRONMENT NEWS
 //=============================
 router.get('/science_and_environment', (req, res) => {
     responseBBCJSON('/science_and_environment/rss.xml', res)
