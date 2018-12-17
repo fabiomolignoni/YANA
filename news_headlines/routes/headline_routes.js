@@ -61,6 +61,9 @@ router.post('/', [
 //=============================
 // retrieve all resources with conditions specificed as parameters
 router.get('/', (req, res) => {
+    if (req.query.datetime != undefined) {
+        req.query.datetime = { '$gte': new Date(req.query.datetime) }
+    }
     Headline.find(req.query).exec(function (err, headlines) {
         if (err) {
             res.status(500).json({ "errors": [{ "msg": "internal error" }] })
