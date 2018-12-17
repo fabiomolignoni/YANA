@@ -6,6 +6,10 @@ var HeadlineSchema = new Schema({
     author: String,
     title: String,
     url: String,
+    lang: {
+        type: String,
+        default: "en"
+    },
     imageUrl: {
         type: String,
         default: ""

@@ -16,15 +16,6 @@ router.use(function (req, res, next) {
 });
 
 //=============================
-//    OPTIONS v1/headlines/*
-//=============================
-router.options("/*", function (req, res, next) {
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
-    res.send(200);
-});
-
-//=============================
 //      POST v1/headlines
 //=============================
 router.post('/', [
@@ -32,7 +23,8 @@ router.post('/', [
     check("author", "author is not defined").exists(),
     check("title", "title is not defined").exists(),
     check("url", "url is not defined or is not an URL").isURL(),
-    check("category", "category is not definied or is not valid").isIn(['technology', 'business'])]
+    check("category", "category is not definied or is not valid").isIn(['technology', 'business'])],
+    check("lang", "lang is not definied or is not valid").isIn(['en', 'ita'])
     , (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -43,6 +35,7 @@ router.post('/', [
                 author: req.body.author,
                 title: req.body.title,
                 url: req.body.url,
+                lang: req.body.lang,
                 imageUrl: req.body.imageUrl,
                 datetime: req.body.datetime,
                 body: req.body.body,
@@ -87,24 +80,16 @@ router.put('/:id', (req, res) => {
         if (err) {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {
-            if (req.body.source !== undefined)
-                headline.source = req.body.source
-            if (req.body.author !== undefined)
-                headline.author = req.body.author
-            if (req.body.title !== undefined)
-                headline.title = req.body.title
-            if (req.body.url !== undefined)
-                headline.url = req.body.url
-            if (req.body.imageUrl !== undefined)
-                headline.imageUrl = req.body.imageUrl
-            if (req.body.datetime !== undefined)
-                headline.datetime = req.body.datetime
-            if (req.body.body !== undefined)
-                headline.body = req.body.body
-            if (req.body.category !== undefined)
-                headline.category = req.body.category
-            if (req.body.tags !== undefined)
-                headline.tags = req.body.tags
+            headline.source = ((req.body.source !== undefined) ? req.body.source : headline.source)
+            headline.author = ((req.body.author !== undefined) ? req.body.author : headline.author)
+            headline.title = ((req.body.title !== undefined) ? req.body.title : headline.title)
+            headline.url = ((req.body.url !== undefined) ? req.body.url : headline.url)
+            headline.imageUrl = ((req.body.imageUrl !== undefined) ? req.body.imageUrl : headline.imageUrl)
+            headline.datetime = ((req.body.datetime !== undefined) ? req.body.datetime : headline.datetime)
+            headline.body = ((req.body.body !== undefined) ? req.body.body : headline.body)
+            headline.category = ((req.body.category !== undefined) ? req.body.category : headline.category)
+            headline.tags = ((req.body.tags !== undefined) ? req.body.tags : headline.tags)
+            headline.lang = ((req.body.lang !== undefined) ? req.body.lang : headline.lang)
         }
         headline.save(function (err) {
             if (err) {
