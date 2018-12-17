@@ -5,9 +5,7 @@ YANA is a news aggregator. Yes, another news aggregator. Why develop it? Well, b
 ***
 
 ## Dev TIME
-1. ``News Headlines``: salva tutte le notizie. Viene utilizzato come "database" dei miei dati. Offre interfaccia CRUD, anche se in realtà dopo si utilizzerà solo la POST e la GET. Ogni entry è definita da un JSON:
-
-{
+1. ``News Headlines``: salva tutte le notizie. Viene utilizzato come "database" dei miei dati. Offre interfaccia CRUD, anche se in realtà dopo si utilizzerà solo la POST e la GET. Ogni entry è definita da un JSON: {
 id: id_notizia,
 source: id_nome
 "author": nome_autore,
@@ -18,17 +16,10 @@ source: id_nome
 "body": body della notizia
 "category": categoria
 "tags": [lista di tags]
-}
-
-Richiede variabile environment: MONGOOSE_URL
-
-endpoint: https://yana-news-headlines.herokuapp.com/v1
+} Richiede variabile environment: MONGOOSE_URL endpoint: https://yana-news-headlines.herokuapp.com/v1
 apiary: https://yananewsheadlineservice.docs.apiary.io/
 
-2. ``rss Adapter``: trasforma xml the verge in jsone  trasforma xml the BBC in json
-
-endpoint: https://yana-rss-adapter.herokuapp.com
-apiary: https://yanarssadapter.docs.apiary.io
+2. ``rss Adapter``: trasforma xml the verge in jsone  trasforma xml the BBC in json endpoint: https://yana-rss-adapter.herokuapp.com apiary: https://yanarssadapter.docs.apiary.io
 
 4. ``Headline interface``: ha il compito di astrarre il servizio _News Headlines_. In particolare, data una notizia, se esiste la aggiorna, altrimenti ne crea una categorizzandola e dandole i tag appropriati. Permette anche di recuperare tutte le note con i vari filtri.
 
