@@ -28,6 +28,83 @@ router.get('/google', (req, res) => {
 })
 
 //=============================
+//     GET APPLE NEWS
+//=============================
+router.get('/apple', (req, res) => {
+    theVergeXml2Json('/apple/rss/index.xml').then(jsonRSS => {
+        res.status(200).send(jsonRSS)
+    }).catch(e => {
+        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
+    })
+})
+
+//=============================
+//       GET APPS NEWS
+//=============================
+router.get('/apps', (req, res) => {
+    theVergeXml2Json('/apps/rss/index.xml').then(jsonRSS => {
+        res.status(200).send(jsonRSS)
+    }).catch(e => {
+        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
+    })
+})
+
+//=============================
+//      GET CULTURE NEWS
+//=============================
+router.get('/culture', (req, res) => {
+    theVergeXml2Json('/culture/rss/index.xml').then(jsonRSS => {
+        res.status(200).send(jsonRSS)
+    }).catch(e => {
+        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
+    })
+})
+
+//=============================
+//     GET MICROSOFT NEWS
+//=============================
+router.get('/microsoft', (req, res) => {
+    theVergeXml2Json('/microsoft/rss/index.xml').then(jsonRSS => {
+        res.status(200).send(jsonRSS)
+    }).catch(e => {
+        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
+    })
+})
+
+//=============================
+//     GET PHOTOGRAPHY NEWS
+//=============================
+router.get('/photography', (req, res) => {
+    theVergeXml2Json('/photography/rss/index.xml').then(jsonRSS => {
+        res.status(200).send(jsonRSS)
+    }).catch(e => {
+        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
+    })
+})
+
+//=============================
+//       GET POLICY NEWS
+//=============================
+router.get('/policy', (req, res) => {
+    theVergeXml2Json('/policy/rss/index.xml').then(jsonRSS => {
+        res.status(200).send(jsonRSS)
+    }).catch(e => {
+        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
+    })
+})
+
+//=============================
+//       GET WEB NEWS
+//=============================
+router.get('/web', (req, res) => {
+    theVergeXml2Json('/web/rss/index.xml').then(jsonRSS => {
+        res.status(200).send(jsonRSS)
+    }).catch(e => {
+        res.status(500).send({ "errors": [{ "msg": "internal error" }] })
+    })
+})
+
+//=============================
 //     THE VERGE XML 2 JSON
 // Get the xml file from https://<endpoint>/<path>
 // It converts the xml into suitable json
