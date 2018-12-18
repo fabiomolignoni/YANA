@@ -2,7 +2,7 @@
 //           IMPORT
 //=============================
 const express = require('express')
-const router = express.Router()
+const router = express.Router({ mergeParams: true })
 const { check, validationResult } = require('express-validator/check');
 var Headline = require('../models/headline_model')
 var validUrl = require('valid-url');
@@ -23,13 +23,12 @@ router.use(function (req, res, next) {
 //=============================
 //  Creates a new resource with parameters in the body
 router.post('/', [
-    check('source', "source is not defined").exists(),
-    check("author", "author is not defined").exists(),
     check("title", "title is not defined").exists(),
     check("url", "url is not defined or is not an URL").isURL(),
     check("category", "category is not definied or is not valid").isIn(possibleCategories)],
     check("lang", "lang is not definied or is not valid").isIn(possibleLanguages)
     , (req, res) => {
+        req.body.source = req.params.source_id
         const errors = validationResult(req); // Validation of the input based on previous "check"
         if (!errors.isEmpty()) { // If there are some errors return the errors with status 422
             return res.status(422).json({ errors: errors.array() });
@@ -61,10 +60,7 @@ router.post('/', [
 //=============================
 // retrieve all resources with conditions specificed as parameters
 router.get('/', (req, res) => {
-    if (req.query.datetime != undefined) {
-        req.query.datetime = { '$gte': new Date(req.query.datetime) }
-    }
-    Headline.find(req.query).exec(function (err, headlines) {
+    Headline.find({ "source": req.params.source_id }).exec(function (err, headlines) {
         if (err) {
             res.status(500).json({ "errors": [{ "msg": "internal error" }] })
         } else {

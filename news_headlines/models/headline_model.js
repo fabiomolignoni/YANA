@@ -2,8 +2,14 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var HeadlineSchema = new Schema({
-    source: String,
-    author: String,
+    source: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Source'
+    },
+    author: {
+        String,
+        default: ""
+    },
     title: String,
     url: String,
     lang: {

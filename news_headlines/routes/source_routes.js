@@ -97,7 +97,7 @@ router.put('/:id', (req, res) => {
 })
 
 //=============================
-//   DELETE v1/headlines/:id
+//   DELETE v1/sources/:id
 //=============================
 // Delete a resource with a particular id
 router.delete('/:id', (req, res) => {
