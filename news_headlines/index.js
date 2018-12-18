@@ -13,6 +13,7 @@ require('dotenv').config()              // to handle environment variables
 var app = express();                    // define app
 var port = process.env.PORT || 8080;    // Set port
 var headline_routes = require('./routes/headline_routes.js')
+var source_routes = require('./routes/source_routes.js')
 
 app.use(expressValidator())
 app.use(morgan('dev'))                  // Used in dev mode to see the requests the server receive.
@@ -23,7 +24,8 @@ mongoose.connect(process.env.MONGOOSE_URL, { useNewUrlParser: true }) // connect
 //=============================
 //          ROUTES
 //=============================
-app.use('/v1/headlines', headline_routes)   // set routes
+app.use('/v1/sources', source_routes)   // set routes
+app.use('/v1/sources/:id/headlines', headline_routes)   // set routes
 
 //=============================
 //        START SERVER
