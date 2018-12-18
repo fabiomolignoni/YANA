@@ -108,7 +108,8 @@ function theVergeXml2Json(path) {
                     allNews = []
                     for (entry of jsonPage.feed.entry) {
                         actualNews = {}
-                        actualNews.datetime = new Date(entry.updated)
+                        actualNews.datetime = new Date(entry.published)
+                        actualNews.updated = new Date(entry.updated)
                         actualNews.title = entry.title[0]
                         actualNews.body = entry.content[0]._
                         actualNews.url = entry.link[0].$.href
