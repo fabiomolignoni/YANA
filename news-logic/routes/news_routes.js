@@ -3,6 +3,12 @@
 //=============================
 const express = require('express')
 const router = express.Router({ mergeParams: true })
+const https = require('https')
+require('dotenv').config()
+//=============================
+//     VARIABLES FROM ENV
+//=============================
+const headlines_endpoint = process.env.NEWSHEADLINES_URL | 'localhost:8080/v1'
 
 //=============================
 //     SET DEFAULT HEADERS
@@ -14,8 +20,19 @@ router.use(function (req, res, next) {
 });
 
 //=============================
-//      GET v1/news
+//        POST v1/news
+// get a set of news and post them
+// into the news_headlines ws.
+// it also checks that that news
+// is not already in the DB
 //=============================
-router.get('/:valore', (req, res) => {
+router.post('/', (req, res) => {
 
 })
+
+
+function getNews() {
+    return new Promise(function (resolve, reject) {
+        https
+    })
+}
