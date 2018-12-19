@@ -25,7 +25,7 @@ mongoose.connect(process.env.MONGOOSE_URL, { useNewUrlParser: true }) // connect
 //          ROUTES
 //=============================
 app.use('/v1/sources', source_routes)   // set routes
-app.use('/v1/sources/:source_id/headlines', headline_routes)   // set routes
+app.use('/v1/headlines', headline_routes)   // set routes
 
 //=============================
 //        START SERVER

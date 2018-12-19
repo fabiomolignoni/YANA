@@ -24,18 +24,19 @@ router.use(function (req, res, next) {
 //  Creates a new resource with parameters in the body
 router.post('/', [
     check("title", "title is not defined").exists(),
+    check("source", "source is not defined").exists(),
     check("url", "url is not defined or is not an URL").isURL(),
     check("category", "category is not definied or is not valid").isIn(possibleCategories)],
     check("lang", "lang is not definied or is not valid").isIn(possibleLanguages)
+
     , (req, res) => {
-        req.body.source = req.params.source_id
         const errors = validationResult(req); // Validation of the input based on previous "check"
         if (!errors.isEmpty()) { // If there are some errors return the errors with status 422
             return res.status(422).json({ errors: errors.array() });
         } else {
             reqDate = new Date(req.body.datetime)
             if (reqDate == 'Invalid Date' || isNaN(reqDate) || reqDate > Date.now) { // if date is not valid set it as now
-                reqDate = Date.now
+                reqDate = Date.now()
             }
             if (req.body.imageUrl === undefined || !validUrl.isUri(req.body.imageUrl)) {
                 req.body.imageUrl = '' // if image is not valid set default value
@@ -61,7 +62,9 @@ router.post('/', [
 // retrieve all resources with conditions specificed as parameters
 router.get('/', (req, res) => {
     let query = {}
-    query.source = req.params.source_id
+    if (req, query.source != undefined) {
+        query.source = req.body.source_id
+    }
     if (req.query.url != undefined) {
         query.url = req.query.url
     }
