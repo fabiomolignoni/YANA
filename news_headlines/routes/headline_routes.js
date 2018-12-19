@@ -62,14 +62,14 @@ router.post('/', [
 // retrieve all resources with conditions specificed as parameters
 router.get('/', (req, res) => {
     let query = {}
-    if (req, query.source != undefined) {
-        query.source = req.body.source_id
+    if (req.query.source != undefined) {
+        query.source = req.query.source
     }
     if (req.query.url != undefined) {
         query.url = req.query.url
     }
     if (req.query.datetime != undefined) {
-        query.datetime = { '$gt': req.query.datetime }
+        query.datetime = { '$gt': new Date(req.query.datetime) }
     }
     if (req.query.category != undefined) {
         query.category = req.query.category
