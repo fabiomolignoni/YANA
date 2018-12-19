@@ -60,7 +60,18 @@ router.post('/', [
 //=============================
 // retrieve all resources with conditions specificed as parameters
 router.get('/', (req, res) => {
-    Headline.find({ "source": req.params.source_id }).exec(function (err, headlines) {
+    let query = {}
+    query.source = req.params.source_id
+    if (req.query.url != undefined) {
+        query.url = req.query.url
+    }
+    if (req.query.datetime != undefined) {
+        query.datetime = { '$gt': req.query.datetime }
+    }
+    if (req.query.category != undefined) {
+        query.category = req.query.category
+    }
+    Headline.find(query).exec(function (err, headlines) {
         if (err) {
             res.status(500).json({ "errors": [{ "msg": "internal error" }] })
         } else {
