@@ -3,8 +3,9 @@
 //=============================
 const express = require('express')
 const router = express.Router({ mergeParams: true })
-const https = require('https')
 const async = require('async')
+const https = require('https')
+const request = require('request')
 require('dotenv').config()
 
 //=============================
@@ -32,18 +33,27 @@ router.use(function (req, res, next) {
 //=============================
 router.post('/', (req, res) => {
     let postNews = JSON.parse(req.body.news)
+    let allIds = []
     getNews({ "source": req.body.source }).then(news => {
         let lastTimeUpdated = getLastDatetime(news)
         if (lastTimeUpdated < getLastDatetime(postNews)) { // there is NOT NEWS INSIDE THE DATA
             for (notizia of postNews) {
                 currentDate = new Date(notizia.datetime)
                 if (lastTimeUpdated < currentDate) {
-                    postANews(source, setCompleteNews(notizia))
+                    notizia.source = req.body.source
+                    setCompleteNews(notizia).then(val => {
+                        postANews(notizia).then(id => {
+                            res.json(id)
+                            // qui in futuro set array
+                        }).catch(e => {
+                            res.json(e)
+                        })
+                    })
                 }
             }
         }
-        // capire come gestire "wait until fatto tutte postANews"
-        // poi ritorna tutti gli id delle notizie inserite
+        // capire come gestire "wait until fatto tutte postANews"        
+        // res.json(allIds)
     })
 })
 
@@ -60,21 +70,54 @@ router.get('/', function (req, res) {
 // ritorna l'id della entry
 //=============================
 function postANews(news) {
-    urlNews = headlines_endpoint + "/headlines"
+    // capire come fare una post
+    console.log("post a news")
     return new Promise(function (resolve, reject) {
+        request.post({
+            url: "https://" + headlines_endpoint + "/v1/headlines",
+            body: news,
+            json: true
+        }, function optionalCallback(err, httpResponse, body) {
+            if (err || httpResponse.statusCode !== 200) {
+                reject(body)
+            } else {
+                resolve(body._id)
+            }
+        });
+        /*
+        console.log("in post a enws")
         var options = {
-            "body": news
+            hostname: headlines_endpoint,
+            path: '/v1/headlines',
+            method: 'POST',
+            port: 443,
+            json: true,
+            body: news,
+            headers: {
+                'Content-Type': 'application/json'
+            }
         }
-        https.post(options, function (res) {
-            var body = '';
-            res.on('data', function (chunk) {
-                body += chunk;
-            });
-            res.on('end', function () {
-                var finalResponse = JSON.parse(body);
-                return (finalResponse._id)
-            });
-        })
+        console.log("inizio postanews")
+        console.log(options.hostname)
+        try {
+            https.request(options, function (res) {
+                var body = '';
+                console.log(res.statusCode)
+                res.on('data', function (chunk) {
+                    body += chunk;
+                    console.log(chunk)
+                });
+                res.on('end', function () {
+                    console.log(body)
+                    var finalResponse = JSON.parse(body);
+                    resolve(finalResponse._id)
+                });
+            })
+        } catch (e) {
+            console.log(e)
+            console.log("==========0")
+        }
+        */
     })
 }
 
@@ -84,6 +127,18 @@ function postANews(news) {
 //         e categoria
 //=============================
 function setCompleteNews(news) {
+    return Promise.all([getNewsCategory(news.title), getNewsTags(news.title)]).then(function (listOfResults) {
+        news.category = listOfResults[0].categories[0].name
+        let tags = []
+        for (element of listOfResults[1].annotations) {
+            if (element.confidence > 0.75) {
+                tags.push(element.title)
+            }
+        }
+        news.tags = tags
+        return news
+    })
+    /*
     async.parallel({
         category: function (callback) {
             callback(null, getNewsCategory(news.title))
@@ -94,11 +149,11 @@ function setCompleteNews(news) {
     }, function (err, results) {
         console.log(results.category)
         console.log(results.tags)
-        /*
         Qui filtro categoria (top 1) e tags (tutte quelle con accuracy >0.7)
         poi setto news.category e news.tags e restituisco
-        */
+        
     })
+    */
 }
 
 //=============================
@@ -107,18 +162,20 @@ function setCompleteNews(news) {
 // utilizza API di Dandelion
 //=============================
 function getNewsCategory(title) {
-    let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&min_score=0.2&token=' + dandelion_token
-    url += '&text=' + title
-    https.get(url, function (res) {
-        var body = '';
+    return new Promise(function (resolve, reject) {
+        let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&min_score=0.2&token=' + dandelion_token
+        url += '&text=' + title
+        https.get(url, function (res) {
+            var body = '';
 
-        res.on('data', function (chunk) {
-            body += chunk;
-        });
-        res.on('end', function () {
-            var finalResponse = JSON.parse(body);
-            return (finalResponse)
-        });
+            res.on('data', function (chunk) {
+                body += chunk;
+            });
+            res.on('end', function () {
+                var finalResponse = JSON.parse(body);
+                resolve(finalResponse)
+            });
+        })
     })
 }
 
@@ -128,18 +185,20 @@ function getNewsCategory(title) {
 // utilizza API di Dandelion
 //=============================
 function getNewsTags(title) {
-    let url = dandelion_endpoint + 'nex/v1/?token=' + dandelion_token
-    url += '&text=' + title
-    https.get(url, function (res) {
-        var body = '';
+    return new Promise(function (resolve, reject) {
+        let url = dandelion_endpoint + 'nex/v1/?token=' + dandelion_token
+        url += '&text=' + title
+        https.get(url, function (res) {
+            var body = '';
 
-        res.on('data', function (chunk) {
-            body += chunk;
-        });
-        res.on('end', function () {
-            var finalResponse = JSON.parse(body);
-            resolve(finalResponse)
-        });
+            res.on('data', function (chunk) {
+                body += chunk;
+            });
+            res.on('end', function () {
+                var finalResponse = JSON.parse(body);
+                resolve(finalResponse)
+            });
+        })
     })
 }
 //=============================
@@ -162,7 +221,7 @@ function getLastDatetime(allNews) {
 // prende news secondo params
 //=============================
 function getNews(params) {
-    urlNews = headlines_endpoint + "/headlines?"
+    urlNews = "https://" + headlines_endpoint + "/v1/headlines?"
     for (name in params) {
         urlNews += name + "=" + params[name] + "&"
     }
@@ -178,7 +237,7 @@ function getNews(params) {
                 resolve(finalResponse)
             });
         }).on('error', function (e) {
-            console.log("Got an error: ", e);
+            ;
             reject("internal error")
         })
     })
