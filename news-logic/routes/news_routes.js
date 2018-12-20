@@ -6,12 +6,14 @@ const router = express.Router({ mergeParams: true })
 const https = require('https')
 const async = require('async')
 require('dotenv').config()
+
 //=============================
 //     VARIABLES FROM ENV
 //=============================
 const headlines_endpoint = process.env.HEADLINES_URL || 'localhost:8080/v1'
 const dandelion_endpoint = process.env.DANDELION_URL || 'https://api.dandelion.eu/datatxt/'
 const dandelion_token = process.env.DANDELION_TOKEN
+
 //=============================
 //     SET DEFAULT HEADERS
 //=============================
@@ -36,76 +38,114 @@ router.post('/', (req, res) => {
             for (notizia of postNews) {
                 currentDate = new Date(notizia.datetime)
                 if (lastTimeUpdated < currentDate) {
-                    console.log("Trovato da aggiungere!")
-                    getNewsCategory(notizia.title).then(completeNews => {
-                        console.log(completeNews)
-                        /*
-                        postANews(req.body.source_id, completeNews)
-                        // da decidere come gestire return
-                        // asincrona o sincrona? io direi sincrona
-                        // crea lista di return e quando contiene tutto not undefined
-                        // ritorna valore appropriato
-                        */
-                    })
+                    postANews(source, setCompleteNews(notizia))
                 }
             }
         }
+        // capire come gestire "wait until fatto tutte postANews"
+        // poi ritorna tutti gli id delle notizie inserite
     })
 })
 
-/*
-function postANews(source_id, news) {
-    urlNews = headlines_endpoint + "/sources/" + source_id + "/headlines"
+//=============================
+//        GET v1/news
+//=============================
+router.get('/', function (req, res) {
+    // 
+})
+
+//=============================
+//         POST A NEWS
+// crea una nuova headline e
+// ritorna l'id della entry
+//=============================
+function postANews(news) {
+    urlNews = headlines_endpoint + "/headlines"
     return new Promise(function (resolve, reject) {
-        // COME GESTIRE GET DI UN JSON?
-        // COME INVIARE PARAMETRI DI UNA GET IN MANIERA COMODA?
-        https.post(urlNews, params ?, function (resNews) {
-            // RETURN RISULTATI POST
+        var options = {
+            "body": news
+        }
+        https.post(options, function (res) {
+            var body = '';
+            res.on('data', function (chunk) {
+                body += chunk;
+            });
+            res.on('end', function () {
+                var finalResponse = JSON.parse(body);
+                return (finalResponse._id)
+            });
         })
     })
 }
-*/
 
+//=============================
+//     SET COMPLETE NEWS
+// ritorna una notizia con tags
+//         e categoria
+//=============================
+function setCompleteNews(news) {
+    async.parallel({
+        category: function (callback) {
+            callback(null, getNewsCategory(news.title))
+        },
+        tags: function (callback) {
+            callback(null, getNewsTags(news.title))
+        }
+    }, function (err, results) {
+        console.log(results.category)
+        console.log(results.tags)
+        /*
+        Qui filtro categoria (top 1) e tags (tutte quelle con accuracy >0.7)
+        poi setto news.category e news.tags e restituisco
+        */
+    })
+}
+
+//=============================
+//       GET NEWS CATEGORY
+// ritorna la categoria di una notizia
+// utilizza API di Dandelion
+//=============================
 function getNewsCategory(title) {
-    return new Promise(function (resolve, reject) {
-        var res = []
-        let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&min_score=0.2&token=' + dandelion_token
-        url += '&text=' + title
-        https.get(url, function (res) {
-            var body = '';
+    let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&min_score=0.2&token=' + dandelion_token
+    url += '&text=' + title
+    https.get(url, function (res) {
+        var body = '';
 
-            res.on('data', function (chunk) {
-                body += chunk;
-            });
-            res.on('end', function () {
-                var finalResponse = JSON.parse(body);
-                resolve(finalResponse)
-            });
-        })
+        res.on('data', function (chunk) {
+            body += chunk;
+        });
+        res.on('end', function () {
+            var finalResponse = JSON.parse(body);
+            return (finalResponse)
+        });
     })
 }
 
+//=============================
+//        GET NEWS TAGS
+// ritorna i tag per una notizia
+// utilizza API di Dandelion
+//=============================
 function getNewsTags(title) {
-    return new Promise(function (resolve, reject) {
-        var res = []
-        let url = dandelion_endpoint + 'nex/v1/?token=' + dandelion_token
-        url += '&text=' + title
-        https.get(url, function (res) {
-            var body = '';
+    let url = dandelion_endpoint + 'nex/v1/?token=' + dandelion_token
+    url += '&text=' + title
+    https.get(url, function (res) {
+        var body = '';
 
-            res.on('data', function (chunk) {
-                body += chunk;
-            });
-            res.on('end', function () {
-                var finalResponse = JSON.parse(body);
-                resolve(finalResponse)
-            });
-        })
+        res.on('data', function (chunk) {
+            body += chunk;
+        });
+        res.on('end', function () {
+            var finalResponse = JSON.parse(body);
+            resolve(finalResponse)
+        });
     })
 }
 //=============================
 //      GET LAST DATETIME
 // ritorna il datetime più recente
+// all'interno di una lista di news
 //=============================
 function getLastDatetime(allNews) {
     currentLast = new Date(1)
