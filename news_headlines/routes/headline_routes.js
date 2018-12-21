@@ -68,18 +68,21 @@ router.get('/', (req, res) => {
     if (req.query.url != undefined) {
         query.url = req.query.url
     }
-    query.datetime = {}
-    if (req.query.from != undefined) {
-        query.datetime['$gt'] = new Date(req.query.from)
-    }
-    if (req.query.to != undefined) {
-        query.datetime['$lt'] = new Date(req.query.to)
+    if (req.query.from != undefined || req.query.to != undefined) {
+        query.datetime = {}
+        if (req.query.from != undefined) {
+            query.datetime['$gte'] = new Date(req.query.from)
+        }
+        if (req.query.to != undefined) {
+            query.datetime['$lte'] = new Date(req.query.to)
+        }
     }
     if (req.query.category != undefined) {
         query.category = req.query.category
     }
     Headline.find(query).exec(function (err, headlines) {
         if (err) {
+            console.log(err)
             res.status(500).json({ "errors": [{ "msg": "internal error" }] })
         } else {
             res.status(200).json(headlines)

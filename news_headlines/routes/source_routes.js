@@ -34,7 +34,7 @@ router.post('/', [
         return res.status(422).json({ errors: errors.array() });
     } else {
         Source.create({ // Create new headline in DB and return the representation with status 201
-            _id=req.body._id,
+            source_id: req.body._id,
             name: req.body.name,
             description: req.body.description,
             url: req.body.url,
@@ -62,7 +62,7 @@ router.get('/', (req, res) => {
 //=============================
 // Retrieve a single resource with the id specified in the URL
 router.get('/:id', (req, res) => {
-    Source.findById(req.params.id, function (err, source) {
+    Source.find({ source_id: req.params.id }).exec(function (err, source) {
         if (err) {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {
@@ -76,7 +76,7 @@ router.get('/:id', (req, res) => {
 //=============================
 // Update a single resource, id specified in the URL, parameters in the body
 router.put('/:id', (req, res) => {
-    Source.findById(req.params.id, function (err, source) {
+    Source.find({ source_id: req.params.id }).exec(function (err, source) {
         if (err) {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {
@@ -103,7 +103,7 @@ router.put('/:id', (req, res) => {
 //=============================
 // Delete a resource with a particular id
 router.delete('/:id', (req, res) => {
-    Source.remove({ _id: req.params.id }, function (err, source) {
+    Source.remove({ source_id: req.params.id }, function (err, source) {
         if (err) {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {

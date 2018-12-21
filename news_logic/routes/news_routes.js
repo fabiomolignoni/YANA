@@ -74,6 +74,13 @@ router.post('/', (req, res) => {
 //        GET v1/news
 //=============================
 router.get('/', function (req, res) {
+    var pageSize = req.query.pageSize == undefined ? 10 : parseInt(req.query.pageSize)
+    if (pageSize > 100) {
+        pageSize = 100
+    } else if (pageSize < 10) {
+        pageSize = 10
+    }
+    var page = req.query.page == undefined ? 0 : parseInt(req.query.page)
     let params = {}
     if (req.query.source != undefined) {
         params.source = req.query.source
@@ -83,6 +90,15 @@ router.get('/', function (req, res) {
     }
     if (req.query.category != undefined) {
         params.category = req.query.category
+    }
+    if (req.query.from != undefined) {
+        params.from = req.query.from
+    }
+    if (req.query.to != undefined) {
+        params.to = req.query.to
+    }
+    if (req.query.lang != undefined) {
+        params.lang = req.query.lang
     }
     getNews(params).then(results => {
         results = results.body
@@ -118,7 +134,7 @@ router.get('/', function (req, res) {
         }
         finalJSON = {}
         finalJSON.totalResults = results.length
-        finalJSON.news = results
+        finalJSON.news = results.slice(pageSize * page, pageSize * page + pageSize)
         res.json(finalJSON)
     })
 })
