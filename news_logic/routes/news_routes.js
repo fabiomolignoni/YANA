@@ -67,25 +67,6 @@ router.post('/', (req, res) => {
             })
         })
     })
-    /*
-    Promise.all(setCompleteNews(postNews)).then(results => {
-        Promise.all(postAllNews(results, req.body.source, req.body.lang)).then(postData => {
-            var response = []
-            for (index in postData) {
-                let current = postData[index]
-                let postResult = {}
-                postResult.url = postNews[index].url
-                if (current.statusCode != 201) {
-                    postResult.errors = current.errors
-                } else {
-                    postResult.id = current._id
-                }
-                response.push(postResult)
-            }
-            res.status(201).json(response)
-        })
-    })
-    */
 })
 
 //=============================
@@ -96,15 +77,6 @@ router.get('/', function (req, res) {
     // 
 })
 
-//====================================
-// OCIO IDEA: PRIMA MI CREO TUTTE LE NEWS COMPLETE DOPO (PROMISES.ALL)
-// LE PRENDO E FACCIO TUTTE LE POST (PROMISES.ALL), ALLA FINE RESTITUISCO
-// I RISULTATI
-
-// ULTIMO PUNTO: RENDERE URL ID UNIVOCO, IN QUESTO MODO SE ANCHE FACCIO UNA POST        
-// DI UN ELEMENTO GIA' ALL'INTERNO DEL DB NON CREO DOPPIONI
-// IN LOGICA DI AGGREGAZIONE POI VEDRÒ DI TROVARE UN MODO PER OTTIMIZZARE
-//====================================
 
 function setCompleteNews(news) {
     var all = []
