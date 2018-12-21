@@ -24,6 +24,7 @@ router.use(function (req, res, next) {
 //  Creates a new resource with parameters in the body
 router.post('/', [
     check('name', "name is not defined or is not valid").exists(),
+    check('_id', "_id is not defined or is not valid").exists(),
     check("description", "description is not defined").exists(),
     check("url", "url is not defined or is not an URL").isURL(),
     check("lang", "lang is not definied or is not valid").isIn(possibleLanguages)
@@ -33,6 +34,7 @@ router.post('/', [
         return res.status(422).json({ errors: errors.array() });
     } else {
         Source.create({ // Create new headline in DB and return the representation with status 201
+            _id=req.body._id,
             name: req.body.name,
             description: req.body.description,
             url: req.body.url,
