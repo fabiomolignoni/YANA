@@ -63,13 +63,17 @@ router.post('/', [
 router.get('/', (req, res) => {
     let query = {}
     if (req.query.source != undefined) {
-        query.source = req.query.source
+        query.source = { $in: req.query.source.split("|") }
     }
     if (req.query.url != undefined) {
         query.url = req.query.url
     }
-    if (req.query.datetime != undefined) {
-        query.datetime = { '$gt': new Date(req.query.datetime) }
+    query.datetime = {}
+    if (req.query.from != undefined) {
+        query.datetime['$gt'] = new Date(req.query.from)
+    }
+    if (req.query.to != undefined) {
+        query.datetime['$lt'] = new Date(req.query.to)
     }
     if (req.query.category != undefined) {
         query.category = req.query.category
