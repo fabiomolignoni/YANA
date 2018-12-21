@@ -4,17 +4,25 @@ var Schema = mongoose.Schema;
 var HeadlineSchema = new Schema({
     source: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Source'
+        ref: 'Source',
+        required: true
     },
     author: {
-        String,
+        type: String,
         default: ""
     },
-    title: String,
-    url: String,
+    title: {
+        type: String,
+        required: true
+    },
+    url: {
+        type: String,
+        required: true
+    },
     lang: {
         type: String,
-        default: "en"
+        required: true,
+        enum: ['en', 'ita']
     },
     imageUrl: {
         type: String,
@@ -28,7 +36,11 @@ var HeadlineSchema = new Schema({
         type: String,
         default: ""
     },
-    category: String,
+    category: {
+        type: String,
+        required: true,
+        enum: ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technology', 'politics', 'general']
+    },
     tags: {
         type: Array,
         default: []

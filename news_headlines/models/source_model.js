@@ -2,10 +2,11 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var SourceSchema = new Schema({
-    name: String,
-    lang: String,
-    url: String,
-    description: String
+    _id: { type: String, unique: true, required: true },
+    name: { type: String, required: true },
+    lang: { type: String, required: true, enum: ['en', 'ita'] },
+    url: { type: String, required: true },
+    description: { type: String, required: true }
 }, {
         versionKey: false
     });
