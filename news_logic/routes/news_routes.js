@@ -32,7 +32,42 @@ router.use(function (req, res, next) {
 // is not already in the DB
 //=============================
 router.post('/', (req, res) => {
-    let postNews = JSON.parse(req.body.news)
+    let recievedNews = JSON.parse(req.body.news)
+    let dict = {}
+    Promise.all(getNotPostedNews(recievedNews)).then(val => {
+        let toBeInserted = []
+        for (x of val) {
+            if (x.body[0] == undefined) {
+                toBeInserted.push(recievedNews.filter(function (el) {
+                    return el.url == x.params.url
+                })[0])
+            } else {
+                dict[x.params.url] = { "errors": [{ "msg": "Already in our systems" }] }
+            }
+        }
+        Promise.all(setCompleteNews(toBeInserted)).then(results => {
+            Promise.all(postAllNews(results, req.body.source, req.body.lang)).then(postData => {
+                for (index in postData) {
+                    let current = postData[index]
+                    if (current.body.statusCode != 201) {
+                        dict[recievedNews[index].url] = { "errors": current.body.errors }
+                    } else {
+                        dict[recievedNews[index].url] = { "id": current.body._id }
+                    }
+                }
+                // results
+                let result = []
+                for (let key in dict) {
+                    current = {}
+                    current.url = key
+                    current.response = dict[key]
+                    result.push(current)
+                }
+                res.json(result)
+            })
+        })
+    })
+    /*
     Promise.all(setCompleteNews(postNews)).then(results => {
         Promise.all(postAllNews(results, req.body.source, req.body.lang)).then(postData => {
             var response = []
@@ -50,6 +85,7 @@ router.post('/', (req, res) => {
             res.status(201).json(response)
         })
     })
+    */
 })
 
 //=============================
@@ -88,6 +124,13 @@ function postAllNews(news, source, lang) {
     return all
 }
 
+function getNotPostedNews(news) {
+    var all = []
+    for (notizia of news) {
+        all.push(getNews({ 'url': notizia.url }))
+    }
+    return all
+}
 
 //=============================
 //         POST A NEWS
@@ -95,7 +138,6 @@ function postAllNews(news, source, lang) {
 // ritorna l'id della entry
 //=============================
 function postANews(news) {
-    console.log(news.url)
     return new Promise(function (resolve, reject) {
         request.post({
             url: "https://" + headlines_endpoint + "/v1/headlines",
@@ -103,7 +145,7 @@ function postANews(news) {
             json: true
         }, function optionalCallback(err, httpResponse, body) {
             body.statusCode = httpResponse.statusCode
-            resolve(body)
+            resolve({ body })
         })
     })
 }
@@ -114,13 +156,12 @@ function postANews(news) {
 //         e categoria
 //=============================
 function setNewsParameters(news) {
-    console.log("invoca complete news")
     return Promise.all([getNewsCategory(news.title), getNewsTags(news.body)]).then(function (listOfResults) {
 
         if (listOfResults[0].categories.length > 0) {
             news.category = listOfResults[0].categories[0].name
         } else {
-            news.category = undefined
+            news.category = "general"
         }
         let tags = []
         for (element of listOfResults[1].annotations) {
@@ -187,25 +228,15 @@ function getNewsTags(title) {
 // prende news secondo params
 //=============================
 function getNews(params) {
-    urlNews = "https://" + headlines_endpoint + "/v1/headlines?"
-    for (name in params) {
-        urlNews += name + "=" + params[name] + "&"
-    }
     return new Promise(function (resolve, reject) {
-        https.get(urlNews, function (res) {
-            var body = '';
-
-            res.on('data', function (chunk) {
-                body += chunk;
-            });
-            res.on('end', function () {
-                var finalResponse = JSON.parse(body);
-                resolve(finalResponse)
-            });
-        }).on('error', function (e) {
-            ;
-            resolve("internal error")
+        urlNews = "https://" + headlines_endpoint + "/v1/headlines?"
+        for (name in params) {
+            urlNews += name + "=" + params[name] + "&"
+        }
+        request(urlNews, function (error, response, body) {
+            resolve({ "params": params, "body": JSON.parse(body) })
         })
     })
 }
+
 module.exports = router
