@@ -6,6 +6,7 @@ const router = express.Router({ mergeParams: true })
 const https = require('https')
 const request = require('request')
 const utf8 = require('utf8')
+const stringSimilarity = require('string-similarity')
 require('dotenv').config()
 
 //=============================
@@ -73,8 +74,53 @@ router.post('/', (req, res) => {
 //        GET v1/news
 //=============================
 router.get('/', function (req, res) {
-
-    // 
+    let params = {}
+    if (req.query.source != undefined) {
+        params.source = req.query.source
+    }
+    if (req.query.datetime != undefined) {
+        params.datetime = req.query.datetime
+    }
+    if (req.query.category != undefined) {
+        params.category = req.query.category
+    }
+    getNews(params).then(results => {
+        results = results.body
+        let reqTitle = req.query.q
+        let reqTags = req.query.tags
+        if (reqTags != undefined) {
+            reqTags = reqTags.split("|")
+            var similarityIndex = []
+            for (x of results) {
+                let maxIndex = 0
+                for (tag of x.tags) {
+                    for (reqtag of reqTags) {
+                        maxIndex = Math.max(maxIndex, stringSimilarity.compareTwoStrings(reqtag, tag))
+                    }
+                }
+                if (maxIndex > 0.78) {
+                    similarityIndex.push([x, maxIndex])
+                }
+            }
+            similarityIndex.sort(function (a, b) { return b[1] - a[1] })
+            results = similarityIndex.map(function (value, index) { return value[0] })
+        }
+        if (reqTitle != undefined) {
+            let similarityIndex = []
+            for (x of results) {
+                index = (stringSimilarity.compareTwoStrings(reqTitle, x.title))
+                if (index > 0.2) {
+                    similarityIndex.push([x, index])
+                }
+            }
+            similarityIndex.sort(function (a, b) { return b[1] - a[1] })
+            results = similarityIndex.map(function (value, index) { return value[0] })
+        }
+        finalJSON = {}
+        finalJSON.totalResults = results.length
+        finalJSON.news = results
+        res.json(finalJSON)
+    })
 })
 
 
@@ -205,6 +251,7 @@ function getNews(params) {
         for (name in params) {
             urlNews += name + "=" + params[name] + "&"
         }
+        console.log(urlNews)
         request(urlNews, function (error, response, body) {
             resolve({ "params": params, "body": JSON.parse(body) })
         })
