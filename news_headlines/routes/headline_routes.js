@@ -51,7 +51,7 @@ router.post('/', [
                 datetime: req.body.datetime,
                 body: req.body.body,
                 category: req.body.category,
-                tags: ((req.body.tags !== undefined) ? req.body.tags.split("|") : [])
+                tags: ((req.body.tags !== undefined && req.body.tags.length > 0) ? req.body.tags.split("|") : [])
             }).then(headline => res.status(201).json(headline));
         }
     })
@@ -68,11 +68,17 @@ router.get('/', (req, res) => {
     if (req.query.url != undefined) {
         query.url = req.query.url
     }
-    if (req.query.datetime != undefined) {
-        query.datetime = { '$gt': new Date(req.query.datetime) }
+    if (req.query.from != undefined) {
+        query.datetime = { '$gt': new Date(req.query.from) }
+    }
+    if (req.query.to != undefined) {
+        query.datetime = { '$lt': new Date(req.query.datetime) }
     }
     if (req.query.category != undefined) {
         query.category = req.query.category
+    }
+    if (req.query.lang != undefined) {
+        query.lang = req.query.lang
     }
     Headline.find(query).exec(function (err, headlines) {
         if (err) {
@@ -127,7 +133,7 @@ router.put('/:id', (req, res) => {
             headline.author = ((req.body.author !== undefined) ? req.body.author : headline.author)
             headline.title = ((req.body.title !== undefined) ? req.body.title : headline.title)
             headline.body = ((req.body.body !== undefined) ? req.body.body : headline.body)
-            headline.tags = ((req.body.tags !== undefined) ? req.body.tags.split("|") : headline.tags)
+            headline.tags = ((req.body.tags !== undefined && req.body.tags.length > 0) ? req.body.tags.split("|") : headline.tags)
         }
         headline.save(function (err) { // update entry in DB
             if (err) {
