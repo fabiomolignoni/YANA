@@ -3,9 +3,9 @@
 //=============================
 const express = require('express')
 const router = express.Router({ mergeParams: true })
-const async = require('async')
 const https = require('https')
 const request = require('request')
+const utf8 = require('utf8')
 require('dotenv').config()
 
 //=============================
@@ -33,27 +33,22 @@ router.use(function (req, res, next) {
 //=============================
 router.post('/', (req, res) => {
     let postNews = JSON.parse(req.body.news)
-    let allIds = []
-    getNews({ "source": req.body.source }).then(news => {
-        let lastTimeUpdated = getLastDatetime(news)
-        if (lastTimeUpdated < getLastDatetime(postNews)) { // there is NOT NEWS INSIDE THE DATA
-            for (notizia of postNews) {
-                currentDate = new Date(notizia.datetime)
-                if (lastTimeUpdated < currentDate) {
-                    notizia.source = req.body.source
-                    setCompleteNews(notizia).then(val => {
-                        postANews(notizia).then(id => {
-                            res.json(id)
-                            // qui in futuro set array
-                        }).catch(e => {
-                            res.json(e)
-                        })
-                    })
+    Promise.all(setCompleteNews(postNews)).then(results => {
+        Promise.all(postAllNews(results, req.body.source, req.body.lang)).then(postData => {
+            var response = []
+            for (index in postData) {
+                let current = postData[index]
+                let postResult = {}
+                postResult.url = postNews[index].url
+                if (current.statusCode != 201) {
+                    postResult.errors = current.errors
+                } else {
+                    postResult.id = current._id
                 }
+                response.push(postResult)
             }
-        }
-        // capire come gestire "wait until fatto tutte postANews"        
-        // res.json(allIds)
+            res.status(201).json(response)
+        })
     })
 })
 
@@ -61,8 +56,38 @@ router.post('/', (req, res) => {
 //        GET v1/news
 //=============================
 router.get('/', function (req, res) {
+
     // 
 })
+
+//====================================
+// OCIO IDEA: PRIMA MI CREO TUTTE LE NEWS COMPLETE DOPO (PROMISES.ALL)
+// LE PRENDO E FACCIO TUTTE LE POST (PROMISES.ALL), ALLA FINE RESTITUISCO
+// I RISULTATI
+
+// ULTIMO PUNTO: RENDERE URL ID UNIVOCO, IN QUESTO MODO SE ANCHE FACCIO UNA POST        
+// DI UN ELEMENTO GIA' ALL'INTERNO DEL DB NON CREO DOPPIONI
+// IN LOGICA DI AGGREGAZIONE POI VEDRÒ DI TROVARE UN MODO PER OTTIMIZZARE
+//====================================
+
+function setCompleteNews(news) {
+    var all = []
+    for (notizia of news) {
+        all.push(setNewsParameters(notizia))
+    }
+    return all
+}
+
+function postAllNews(news, source, lang) {
+    var all = []
+    for (notizia of news) {
+        notizia.source = source
+        notizia.lang = lang
+        all.push(postANews(notizia))
+    }
+    return all
+}
+
 
 //=============================
 //         POST A NEWS
@@ -70,54 +95,16 @@ router.get('/', function (req, res) {
 // ritorna l'id della entry
 //=============================
 function postANews(news) {
-    // capire come fare una post
-    console.log("post a news")
+    console.log(news.url)
     return new Promise(function (resolve, reject) {
         request.post({
             url: "https://" + headlines_endpoint + "/v1/headlines",
             body: news,
             json: true
         }, function optionalCallback(err, httpResponse, body) {
-            if (err || httpResponse.statusCode !== 200) {
-                reject(body)
-            } else {
-                resolve(body._id)
-            }
-        });
-        /*
-        console.log("in post a enws")
-        var options = {
-            hostname: headlines_endpoint,
-            path: '/v1/headlines',
-            method: 'POST',
-            port: 443,
-            json: true,
-            body: news,
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }
-        console.log("inizio postanews")
-        console.log(options.hostname)
-        try {
-            https.request(options, function (res) {
-                var body = '';
-                console.log(res.statusCode)
-                res.on('data', function (chunk) {
-                    body += chunk;
-                    console.log(chunk)
-                });
-                res.on('end', function () {
-                    console.log(body)
-                    var finalResponse = JSON.parse(body);
-                    resolve(finalResponse._id)
-                });
-            })
-        } catch (e) {
-            console.log(e)
-            console.log("==========0")
-        }
-        */
+            body.statusCode = httpResponse.statusCode
+            resolve(body)
+        })
     })
 }
 
@@ -126,34 +113,24 @@ function postANews(news) {
 // ritorna una notizia con tags
 //         e categoria
 //=============================
-function setCompleteNews(news) {
-    return Promise.all([getNewsCategory(news.title), getNewsTags(news.title)]).then(function (listOfResults) {
-        news.category = listOfResults[0].categories[0].name
+function setNewsParameters(news) {
+    console.log("invoca complete news")
+    return Promise.all([getNewsCategory(news.title), getNewsTags(news.body)]).then(function (listOfResults) {
+
+        if (listOfResults[0].categories.length > 0) {
+            news.category = listOfResults[0].categories[0].name
+        } else {
+            news.category = undefined
+        }
         let tags = []
         for (element of listOfResults[1].annotations) {
-            if (element.confidence > 0.75) {
+            if (element.confidence > 0.75 && element.title != "") {
                 tags.push(element.title)
             }
         }
-        news.tags = tags
+        news.tags = tags.join("|")
         return news
     })
-    /*
-    async.parallel({
-        category: function (callback) {
-            callback(null, getNewsCategory(news.title))
-        },
-        tags: function (callback) {
-            callback(null, getNewsTags(news.title))
-        }
-    }, function (err, results) {
-        console.log(results.category)
-        console.log(results.tags)
-        Qui filtro categoria (top 1) e tags (tutte quelle con accuracy >0.7)
-        poi setto news.category e news.tags e restituisco
-        
-    })
-    */
 }
 
 //=============================
@@ -162,9 +139,11 @@ function setCompleteNews(news) {
 // utilizza API di Dandelion
 //=============================
 function getNewsCategory(title) {
+    title = utf8.encode(title)
     return new Promise(function (resolve, reject) {
-        let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&min_score=0.2&token=' + dandelion_token
+        let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&token=' + dandelion_token
         url += '&text=' + title
+        url = encodeURI(url)
         https.get(url, function (res) {
             var body = '';
 
@@ -188,6 +167,7 @@ function getNewsTags(title) {
     return new Promise(function (resolve, reject) {
         let url = dandelion_endpoint + 'nex/v1/?token=' + dandelion_token
         url += '&text=' + title
+        url = encodeURI(url)
         https.get(url, function (res) {
             var body = '';
 
@@ -201,21 +181,7 @@ function getNewsTags(title) {
         })
     })
 }
-//=============================
-//      GET LAST DATETIME
-// ritorna il datetime più recente
-// all'interno di una lista di news
-//=============================
-function getLastDatetime(allNews) {
-    currentLast = new Date(1)
-    for (news of allNews) {
-        currentDate = new Date(news.datetime)
-        if (currentLast < currentDate) {
-            currentLast = currentDate
-        }
-    }
-    return currentLast
-}
+
 //=============================
 //        GET NEWS
 // prende news secondo params
@@ -238,7 +204,7 @@ function getNews(params) {
             });
         }).on('error', function (e) {
             ;
-            reject("internal error")
+            resolve("internal error")
         })
     })
 }
