@@ -5,7 +5,6 @@ const express = require('express')
 const router = express.Router()
 const { check, validationResult } = require('express-validator/check');
 var Source = require('../models/source_model')
-var validUrl = require('valid-url');
 
 var possibleLanguages = ['en', 'ita']
 
@@ -34,12 +33,14 @@ router.post('/', [
         return res.status(422).json({ errors: errors.array() });
     } else {
         Source.create({ // Create new headline in DB and return the representation with status 201
-            source_id: req.body._id,
+            _id: req.body._id.replace(' ', ''),
             name: req.body.name,
             description: req.body.description,
             url: req.body.url,
             lang: req.body.lang,
-        }).then(source => res.status(201).json(source));
+        }).then(source => res.status(201).json(source)).catch(e => {
+            res.status(422).json({ errors: [{ msg: "error while saving data" }] })
+        });
     }
 })
 
@@ -62,7 +63,7 @@ router.get('/', (req, res) => {
 //=============================
 // Retrieve a single resource with the id specified in the URL
 router.get('/:id', (req, res) => {
-    Source.find({ source_id: req.params.id }).exec(function (err, source) {
+    Source.find({ _id: req.params.id }).exec(function (err, source) {
         if (err) {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {
@@ -76,7 +77,7 @@ router.get('/:id', (req, res) => {
 //=============================
 // Update a single resource, id specified in the URL, parameters in the body
 router.put('/:id', (req, res) => {
-    Source.find({ source_id: req.params.id }).exec(function (err, source) {
+    Source.find({ _id: req.params.id }).exec(function (err, source) {
         if (err) {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {
@@ -103,7 +104,7 @@ router.put('/:id', (req, res) => {
 //=============================
 // Delete a resource with a particular id
 router.delete('/:id', (req, res) => {
-    Source.remove({ source_id: req.params.id }, function (err, source) {
+    Source.remove({ _id: req.params.id }, function (err, source) {
         if (err) {
             res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
         } else {

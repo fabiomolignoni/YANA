@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var HeadlineSchema = new Schema({
     source: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'Source',
         required: true
     },
