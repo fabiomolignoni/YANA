@@ -3,7 +3,6 @@
 //=============================
 var express = require("express")        // handling server
 var morgan = require('morgan')          // Used for debugging
-var mongoose = require('mongoose')      // handling database
 var bodyParser = require('body-parser')
 require('dotenv').config()              // to handle environment variables
 //=============================
@@ -11,8 +10,8 @@ require('dotenv').config()              // to handle environment variables
 //=============================
 var app = express();                    // define app
 var port = process.env.PORT || 8083;    // Set port
-var headline_routes = require('./routes/news_routes.js')
-var headline_routes = require('./routes/sources_routes.js')
+var news_routes = require('./routes/news_routes.js')
+var source_routes = require('./routes/source_routes.js')
 
 
 app.use(morgan('dev'))                  // Used in dev mode to see the requests the server receive.
