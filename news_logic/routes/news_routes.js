@@ -33,7 +33,13 @@ router.use(function (req, res, next) {
 // is not already in the DB
 //=============================
 router.post('/', (req, res) => {
-    let recievedNews = JSON.parse(req.body.news)
+    console.log(req.body.news)
+    let recievedNews = undefined
+    if (typeof req.body.news === 'string') {
+        recievedNews = JSON.parse(req.body.news)
+    } else {
+        recievedNews = req.body.news
+    }
     let dict = {}
     Promise.all(getNotPostedNews(recievedNews)).then(val => {
         let toBeInserted = []
