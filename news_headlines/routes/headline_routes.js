@@ -41,6 +41,14 @@ router.post('/', [
             if (req.body.imageUrl === undefined || !validUrl.isUri(req.body.imageUrl)) {
                 req.body.imageUrl = '' // if image is not valid set default value
             }
+            let tagsArray = []
+            if (req.body.tags != undefined && req.body.tags != "") {
+                tagsArray = req.body.tags.split("|")
+                tagsArray = tagsArray.filter(function (value, index) {
+                    return tagsArray.indexOf(value) === index
+                })
+                tagsArray = tagsArray.filter(el => el !== "")
+            }
             Headline.create({ // Create new headline in DB and return the representation with status 201
                 source: req.body.source,
                 author: req.body.author,
@@ -51,7 +59,7 @@ router.post('/', [
                 datetime: req.body.datetime,
                 body: req.body.body,
                 category: req.body.category,
-                tags: ((req.body.tags !== undefined) ? req.body.tags.split("|") : [])
+                tags: tagsArray
             }).then(headline => res.status(201).json(headline));
         }
     })
@@ -130,11 +138,20 @@ router.put('/:id', (req, res) => {
             if (possibleLanguages.includes(req.body.lang)) {
                 headline.lang = req.body.lang
             }
+            let tagsArray = []
+            if (req.body.tags != undefined && req.body.tags != "") {
+                tagsArray = req.body.tags.split("|")
+                tagsArray = tagsArray.filter(function (value, index) {
+                    return tagsArray.indexOf(value) === index
+                })
+                tagsArray = tagsArray.filter(el => el !== "")
+            }
+
             headline.source = ((req.body.source !== undefined) ? req.body.source : headline.source)
             headline.author = ((req.body.author !== undefined) ? req.body.author : headline.author)
             headline.title = ((req.body.title !== undefined) ? req.body.title : headline.title)
             headline.body = ((req.body.body !== undefined) ? req.body.body : headline.body)
-            headline.tags = ((req.body.tags !== undefined) ? req.body.tags.split("|") : headline.tags)
+            headline.tags = (req.body.tags !== undefined) ? tagsArray : headline.tags
         }
         headline.save(function (err) { // update entry in DB
             if (err) {
