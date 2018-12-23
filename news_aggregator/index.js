@@ -8,12 +8,13 @@ require('dotenv').config()              // to handle environment variables
 //=============================
 //          SETTINGS
 //=============================
+var cors = require('cors')
 var app = express();                    // define app
 var port = process.env.PORT || 8083;    // Set port
 var news_routes = require('./routes/news_routes.js')
 var source_routes = require('./routes/source_routes.js')
 
-
+app.use(cors())
 app.use(morgan('dev'))                  // Used in dev mode to see the requests the server receive.
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json());             // Useful to extract data from a POST

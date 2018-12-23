@@ -61,6 +61,24 @@
     padding-top: 20px;
   }
 
+  .selection-button {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.8em;
+    font-weight: bold;
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: none;
+    overflow: hidden;
+    outline:none;
+    color: #333;
+
+}
+
+
+.selection-button:hover{
+    text-decoration: underline
+}
+
   h4{
       margin-top:2%;
       margin-bottom:3%;

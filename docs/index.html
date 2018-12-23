@@ -1,12 +1,13 @@
 <html>
 
 <head>
-    <title>Yet Another news aggregator</title>
+    <title>YANA</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
     <link href="css/index.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body>
@@ -19,11 +20,18 @@
             <time id="date">Tuesday, September, 5th, 2014</time>
         </div>
         <div class="time selection_buttons">
-            <button>Homepage</button>
+            <div clas="buttons">
+                <button class="selection-button" onclick="loadLatest(0)">Latest news</button>
+                <button class="selection-button" onclick="byTopic()">By Topic</button>
+                <button class="selection-button" onclick="loadSources()">Sources</button>
+            </div>
+            <div id="search" style="margin-top:1%; margin-bottom:-2%">
+                <input id="userTags" style="height:2em; width:40em; margin-bottom:2%" type="text" placeholder="e.g:Insert comma separated topics. E.g: Juventus,European election,Piano">
+                <button class="selection-button" onclick="loadByTopic()"><i class="fa fa-search"></i></button>
+
+            </div>
         </div>
-
         <section id="news_container">
-
         </section>
     </article>
 
