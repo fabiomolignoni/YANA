@@ -136,6 +136,13 @@ router.get('/', function (req, res) {
             }
             similarityIndex.sort(function (a, b) { return b[1] - a[1] })
             results = similarityIndex.map(function (value, index) { return value[0] })
+        } else {
+            results = results.sort(function (a, b) {
+                a = new Date(a.datetime)
+                b = new Date(b.datetime)
+                return b - a
+            })
+
         }
         finalJSON = {}
         finalJSON.totalResults = results.length
