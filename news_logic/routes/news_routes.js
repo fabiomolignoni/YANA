@@ -52,7 +52,7 @@ router.post('/', (req, res) => {
             }
         }
         Promise.all(setCompleteNews(toBeInserted)).then(results => {
-            Promise.all(postAllNews(results, req.body.source, req.body.lang)).then(postData => {
+            Promise.all(postAllNews(results, req.body.source)).then(postData => {
                 for (index in postData) {
                     let current = postData[index]
                     if (current.body.statusCode != 201) {
@@ -101,9 +101,6 @@ router.get('/', function (req, res) {
     }
     if (req.query.to != undefined) {
         params.to = req.query.to
-    }
-    if (req.query.lang != undefined) {
-        params.lang = req.query.lang
     }
     getNews(params).then(results => {
         results = results.body
@@ -160,11 +157,10 @@ function setCompleteNews(news) {
     return all
 }
 
-function postAllNews(news, source, lang) {
+function postAllNews(news, source) {
     var all = []
     for (notizia of news) {
         notizia.source = source
-        notizia.lang = lang
         all.push(postANews(notizia))
     }
     return all

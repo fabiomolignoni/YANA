@@ -8,7 +8,7 @@ var Headline = require('../models/headline_model')
 var validUrl = require('valid-url');
 
 var possibleCategories = ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technology', 'politics', 'general']
-var possibleLanguages = ['en', 'ita']
+
 //=============================
 //     SET DEFAULT HEADERS
 //=============================
@@ -26,8 +26,7 @@ router.post('/', [
     check("title", "title is not defined").exists(),
     check("source", "source is not defined").exists(),
     check("url", "url is not defined or is not an URL").isURL(),
-    check("category", "category is not definied or is not valid").isIn(possibleCategories)],
-    check("lang", "lang is not definied or is not valid").isIn(possibleLanguages)
+    check("category", "category is not definied or is not valid").isIn(possibleCategories)]
 
     , (req, res) => {
         const errors = validationResult(req); // Validation of the input based on previous "check"
@@ -37,9 +36,6 @@ router.post('/', [
             reqDate = new Date(req.body.datetime)
             if (reqDate == 'Invalid Date' || isNaN(reqDate) || reqDate > Date.now) { // if date is not valid set it as now
                 reqDate = Date.now()
-            }
-            if (req.body.imageUrl === undefined || !validUrl.isUri(req.body.imageUrl)) {
-                req.body.imageUrl = '' // if image is not valid set default value
             }
             let tagsArray = []
             if (req.body.tags != undefined && req.body.tags != "") {
@@ -54,8 +50,6 @@ router.post('/', [
                 author: req.body.author,
                 title: req.body.title,
                 url: req.body.url,
-                lang: req.body.lang,
-                imageUrl: req.body.imageUrl,
                 datetime: req.body.datetime,
                 body: req.body.body,
                 category: req.body.category,
@@ -125,18 +119,12 @@ router.put('/:id', (req, res) => {
             if (req.body.url !== undefined && validUrl.isUri(req.body.url)) {
                 headline.url = req.body.url
             }
-            if (req.body.imageUrl !== undefined && validUrl.isUri(req.body.imageUrl)) {
-                headline.imageUrl = req.body.imageUrl
-            }
             var reqDate = new Date(req.body.datetime)
             if (reqDate != 'Invalid Date' && !isNaN(reqDate) && reqDate <= Date.now()) { // if date is not valid set it as now
                 headline.datetime = reqDate
             }
             if (possibleCategories.includes(req.body.category)) {
                 headline.category = req.body.category
-            }
-            if (possibleLanguages.includes(req.body.lang)) {
-                headline.lang = req.body.lang
             }
             let tagsArray = []
             if (req.body.tags != undefined && req.body.tags != "") {

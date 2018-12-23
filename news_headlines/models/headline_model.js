@@ -8,8 +8,7 @@ var HeadlineSchema = new Schema({
         required: true
     },
     author: {
-        type: String,
-        default: ""
+        type: String
     },
     title: {
         type: String,
@@ -19,22 +18,12 @@ var HeadlineSchema = new Schema({
         type: String,
         required: true
     },
-    lang: {
-        type: String,
-        required: true,
-        enum: ['en', 'ita']
-    },
-    imageUrl: {
-        type: String,
-        default: ""
-    },
     datetime: {
         type: Date,
         default: Date.now()
     },
     body: {
-        type: String,
-        default: ""
+        type: String
     },
     category: {
         type: String,

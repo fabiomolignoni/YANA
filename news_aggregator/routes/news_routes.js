@@ -44,7 +44,6 @@ function updateNYTEntries() {
             let newsToPost = parseNYTNews(body.response.docs)
             bodyPost = {}
             bodyPost.source = 'new-york-times'
-            bodyPost.lang = "en"
             bodyPost.news = newsToPost
             request.post({
                 url: news_logic_endpoint + "/news",
@@ -64,7 +63,6 @@ function parseNYTNews(news) {
     let results = []
     for (notizia of news) {
         let current = {}
-        current.lang = "en"
         current.url = notizia.web_url
         current.body = notizia.snippet
         current.title = notizia.headline.main
@@ -95,7 +93,6 @@ function updateGuardianEntries() {
                 let newsToPost = parseGuardianNews(news.response.results)
                 bodyPost = {}
                 bodyPost.source = 'the-guardian'
-                bodyPost.lang = "en"
                 bodyPost.news = newsToPost
                 request.post({
                     url: news_logic_endpoint + "/news",
@@ -115,7 +112,6 @@ function parseGuardianNews(news) {
         current.title = notizia.webTitle
         current.url = notizia.webUrl
         current.datetime = notizia.webPubblicationDate
-        current.lang = "en"
         results.push(current)
     }
     return results
@@ -126,7 +122,7 @@ function updateBBCEntries() {
     var pages = ['/world', '/uk', '/business', '/politics',
         '/health', '/education', '/science_and_environment', '/technology', '/entertainment_and_arts']
     for (page of pages) {
-        all.push(PostRSSFeed("/bbc" + page, "bbc-news", "en"))
+        all.push(PostRSSFeed("/bbc" + page, "bbc-news"))
     }
     return all
 }
@@ -135,18 +131,17 @@ function updateTheVergeEntries() {
     let all = []
     var pages = ['/google', '/apple', '/apps', '/culture', '/microsoft', '/photography', '/policy', '/web']
     for (page of pages) {
-        all.push(PostRSSFeed("/the-verge" + page, 'the-verge', 'en'))
+        all.push(PostRSSFeed("/the-verge" + page, 'the-verge'))
     }
     return all
 }
 
-function PostRSSFeed(page, source, lang) {
+function PostRSSFeed(page, source) {
     return new Promise(function (resolve, reject) {
         request.get(rss_adapter_endpoint + page, function (error, response, body) {
             let recieved = JSON.parse(body)
             let newsToSend = {}
             newsToSend.source = source
-            newsToSend.lang = lang
             newsToSend.news = recieved.news
             console.log(news_logic_endpoint + "/news")
             request.post({
@@ -159,25 +154,4 @@ function PostRSSFeed(page, source, lang) {
         })
     })
 }
-/*
-function postTheVergeRSSFeed(page) {
-    return new Promise(function (resolve, reject) {
-        request.get(rss_adapter_endpoint + "/the-verge" + page, function (error, response, body) {
-            let recieved = JSON.parse(body)
-            let newsToSend = {}
-            newsToSend.source = 'the-verge'
-            newsToSend.lang = 'en'
-            newsToSend.news = recieved.news
-            console.log(news_logic_endpoint + "/news")
-            request.post({
-                url: news_logic_endpoint + "/news",
-                body: newsToSend,
-                json: true
-            }, function (err, res, bod) {
-                resolve(bod)
-            })
-        })
-    })
-}
-    */
 module.exports = router
