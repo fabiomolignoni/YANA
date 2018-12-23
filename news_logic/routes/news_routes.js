@@ -33,7 +33,6 @@ router.use(function (req, res, next) {
 // is not already in the DB
 //=============================
 router.post('/', (req, res) => {
-    console.log(req.body.news)
     let recievedNews = undefined
     if (typeof req.body.news === 'string') {
         recievedNews = JSON.parse(req.body.news)
@@ -196,7 +195,11 @@ function postANews(news) {
 //         e categoria
 //=============================
 function setNewsParameters(news) {
-    return Promise.all([getNewsCategory(news.title), getNewsTags(news.body)]).then(function (listOfResults) {
+    let tagsSource = news.body
+    if (tagsSource == undefined || tagsSource == "") {
+        tagsSource = news.title
+    }
+    return Promise.all([getNewsCategory(news.title), getNewsTags(tagsSource)]).then(function (listOfResults) {
 
         if (listOfResults[0].categories.length > 0) {
             news.category = listOfResults[0].categories[0].name
@@ -223,7 +226,7 @@ function getNewsCategory(title) {
     title = utf8.encode(title)
     return new Promise(function (resolve, reject) {
         let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&token=' + dandelion_token
-        url += '&text=' + title
+        url += '&text=' + title + "&min_score=0.2"
         url = encodeURI(url)
         https.get(url, function (res) {
             var body = '';
@@ -273,7 +276,6 @@ function getNews(params) {
         for (name in params) {
             urlNews += name + "=" + params[name] + "&"
         }
-        console.log(urlNews)
         request(urlNews, function (error, response, body) {
             resolve({ "params": params, "body": JSON.parse(body) })
         })
