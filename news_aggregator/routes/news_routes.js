@@ -25,10 +25,77 @@ router.use(function (req, res, next) {
 });
 
 router.post('/', (req, res) => {
-    updateNYTEntries().then(news => {
-        res.json(news)
+    Promise.all([updateNYTEntries(),
+    updateBBCEntries(),
+    updateGuardianEntries(),
+    updateTheVergeEntries()]).then(values => {
+        res.json(values)
     })
 })
+
+router.get('/', (req, res) => {
+    let params = {}
+    if (req.query.source != undefined) {
+        params.source = req.query.source
+    }
+    if (req.query.datetime != undefined) {
+        params.datetime = req.query.datetime
+    }
+    if (req.query.category != undefined) {
+        params.category = req.query.category
+    }
+    if (req.query.from != undefined) {
+        params.from = req.query.from
+    }
+    if (req.query.to != undefined) {
+        params.to = req.query.to
+    }
+    if (req.query.q != undefined) {
+        params.q = req.query.q
+    }
+    getNews(params).then(results => {
+        res.json(results)
+    })
+})
+
+router.get('/:tags', (req, res) => {
+    console.log("qua")
+    let params = {}
+    if (req.query.source != undefined) {
+        params.source = req.query.source
+    }
+    if (req.query.datetime != undefined) {
+        params.datetime = req.query.datetime
+    }
+    if (req.query.category != undefined) {
+        params.category = req.query.category
+    }
+    if (req.query.from != undefined) {
+        params.from = req.query.from
+    }
+    if (req.query.to != undefined) {
+        params.to = req.query.to
+    }
+    if (req.query.q != undefined) {
+        params.q = req.query.q
+    }
+    params.tags = req.params.tags
+    console.log(params.tags)
+    getNews(params).then(results => {
+        res.json(results)
+    })
+})
+
+function getNews(params) {
+    console.log(params)
+    return new Promise(function (resolve, reject) {
+        request({ url: news_logic_endpoint + "/news", qs: params }, function (err, response, body) {
+            resolve(JSON.parse(body))
+        })
+    })
+}
+
+
 
 function updateNYTEntries() {
     return new Promise(function (resolve, reject) {
@@ -39,21 +106,9 @@ function updateNYTEntries() {
                 'begin_date': parseInt(getNYTDate())
             },
         }, function (err, response, body) {
-            console.log("quah")
             body = JSON.parse(body)
             let newsToPost = parseNYTNews(body.response.docs)
-            bodyPost = {}
-            bodyPost.source = 'new-york-times'
-            bodyPost.news = newsToPost
-            request.post({
-                url: news_logic_endpoint + "/news",
-                body: bodyPost,
-                json: true
-            }, function (err, res, bod) {
-                resolve(bod)
-            })
-
-
+            postNews('new-york-times', newsToPost).then(res => resolve(res))
         })
     })
 
@@ -91,16 +146,7 @@ function updateGuardianEntries() {
             function (error, response, body) {
                 let news = JSON.parse(body)
                 let newsToPost = parseGuardianNews(news.response.results)
-                bodyPost = {}
-                bodyPost.source = 'the-guardian'
-                bodyPost.news = newsToPost
-                request.post({
-                    url: news_logic_endpoint + "/news",
-                    body: bodyPost,
-                    json: true
-                }, function (err, res, bod) {
-                    resolve(bod)
-                })
+                postNews('the-guardian', newsToPost).then(res => resolve(res))
             })
     })
 }
@@ -136,21 +182,27 @@ function updateTheVergeEntries() {
     return all
 }
 
+function postNews(source, news) {
+    return new Promise(function (resolve, reject) {
+        let newsToSend = {}
+        newsToSend.source = source
+        newsToSend.news = news
+        console.log(news_logic_endpoint + "/news")
+        request.post({
+            url: news_logic_endpoint + "/news",
+            body: newsToSend,
+            json: true
+        }, function (err, res, bod) {
+            resolve(bod)
+        })
+    })
+}
+
 function PostRSSFeed(page, source) {
     return new Promise(function (resolve, reject) {
         request.get(rss_adapter_endpoint + page, function (error, response, body) {
             let recieved = JSON.parse(body)
-            let newsToSend = {}
-            newsToSend.source = source
-            newsToSend.news = recieved.news
-            console.log(news_logic_endpoint + "/news")
-            request.post({
-                url: news_logic_endpoint + "/news",
-                body: newsToSend,
-                json: true
-            }, function (err, res, bod) {
-                resolve(bod)
-            })
+            postNews(source, recieved.news).then(result => resolve(result))
         })
     })
 }
