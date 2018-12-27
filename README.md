@@ -3,13 +3,13 @@ _Yet Another News Aggregator_
 
 ## COSE DA SISTEMARE
 ### NEWS HEADLINES
-- fare testing
 - commentare codice
 - scrivere api
 ### RSS ADAPTER
 - aggiungere RSS di ESPN
 - gestire errori e reject delle promises
-- fare testing separando le funzioni
+- aggiungere path di default per non definito
+- separando le funzioni
 - commentare codice
 - scrivere api
 ### NEWS LOGIC
@@ -17,9 +17,10 @@ _Yet Another News Aggregator_
 - "cannot read property length of undefined at 207:41" -> probabilmente quando tags non va
 - tags per similarity alta invece che ==
 - invece di fare n call, fai 1 call prendendo tutte le notizie per quella source
+- aggiungere path di default per non definito
 - restituisce news complete invece che solo l'URL
 - gestire errori e reject delle promises
-- fare testing separando le funzioni
+- separando le funzioni
 - commentare codice
 - scrivere api
 ### NEWS AGGREGATOR
@@ -27,8 +28,9 @@ _Yet Another News Aggregator_
 - fixare il fatto che guardian non mette ora giusta
 - effettua una POST in automatico ogni 10 minuti
 - deve passare page e pageSize a newsLogic
+- aggiungere path di default per non definito
 - gestire errori e reject delle promises
-- fare testing separando le funzioni
+- separando le funzioni
 - commentare codice
 - scrivere api
 ### UI

@@ -1,9 +1,17 @@
-
+//=============================
+//           IMPORT
+//=============================
 var Source = require('../models/source_model')
 var possibleLanguages = ['en', 'ita']
 
+//=============================
+//        postSource
+// it creates a new source in the DB.
+// data is the object to push in the DB.
+// returns a promise
+//=============================
 var postSource = function (data) {
-    return Source.create({ // Create new headline in DB and return the representation with status 201
+    return Source.create({ // Create new source in DB 
         _id: data._id.replace(' ', ''),
         name: data.name,
         description: data.description,
@@ -12,6 +20,12 @@ var postSource = function (data) {
     });
 }
 
+//=============================
+//      searchSources
+// searches for sources in the DB.
+// params are the parameters of the search.
+// returns a promise
+//=============================
 var searchSources = function (params) {
     return new Promise(function (resolve, reject) {
         Source.find(params).exec(function (err, sources) {
@@ -24,6 +38,12 @@ var searchSources = function (params) {
     })
 }
 
+//=============================
+//       getSourceById
+// find a source by an ID
+// id is the id of the source that you want to find
+// returns a promise
+//=============================
 var getSourceById = function (id) {
     return new Promise(function (resolve, reject) {
         Source.find({ _id: id }).exec(function (err, source) {
@@ -36,6 +56,13 @@ var getSourceById = function (id) {
     })
 }
 
+//=============================
+//       updateSource
+// update a source
+// id is the id of the source that you want to update
+// data is the data that you want to update (it doesn't need to be complete)
+// returns a promise
+//=============================
 var updateSource = function (id, data) {
     return new Promise(function (resolve, reject) {
         Source.find({ _id: id }).exec(function (err, source) {
@@ -61,6 +88,12 @@ var updateSource = function (id, data) {
     })
 }
 
+//=============================
+//       deleteSource
+// delete a source by an ID
+// id is the id of the source that you want to delete
+// returns a promise
+//=============================
 var deleteSource = function (id) {
     return new Promise(function (resolve, reject) {
         Source.remove({ _id: id }, function (err, source) {
@@ -72,6 +105,8 @@ var deleteSource = function (id) {
         })
     })
 }
+
+// exporting the functions
 module.exports.postSource = postSource
 module.exports.searchSources = searchSources
 module.exports.getSourceById = getSourceById

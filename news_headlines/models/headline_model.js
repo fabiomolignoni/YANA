@@ -1,6 +1,11 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
+/*
+  Headline Schema. An headline is defined by a source, a title, a url (unique)
+  and a category. Other optionals fields are author, body and tags. Tags,
+  if not defined, is set as [].
+*/
 var HeadlineSchema = new Schema({
     source: {
         type: String,
@@ -26,7 +31,7 @@ var HeadlineSchema = new Schema({
     body: {
         type: String
     },
-    category: {
+    category: { // category has a list of possible values
         type: String,
         required: true,
         enum: ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technology', 'politics', 'general']
@@ -39,15 +44,12 @@ var HeadlineSchema = new Schema({
         versionKey: false
     });
 
+/*
+    Before saving, if tags or datetime are not defined, it set them with some default values
+*/
 HeadlineSchema.pre('save', function (next) {
-    if (this.imageUrl === null || this.imageUrl === undefined) {
-        this.imageUrl = ''
-    }
     if (this.datetime === null || this.datetime === undefined) {
-        this.datetime = Date.now
-    }
-    if (this.body === null || this.body === undefined) {
-        this.body = ''
+        this.datetime = Date.now()
     }
     if (this.tags === null || this.tags === undefined) {
         this.tags = []

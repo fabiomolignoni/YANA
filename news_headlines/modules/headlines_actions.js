@@ -1,6 +1,15 @@
+//=============================
+//           IMPORT
+//=============================
 var Headline = require('../models/headline_model')
 var possibleCategories = ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technology', 'politics', 'general']
 
+//=============================
+//        postHeadline
+// it creates a new headline in the DB.
+// data is the object to push in the DB.
+// returns a promise
+//=============================
 var postHeadline = function (data) {
     reqDate = new Date(data.datetime)
     if (reqDate == 'Invalid Date' || isNaN(reqDate) || reqDate > Date.now) { // if date is not valid set it as now
@@ -14,7 +23,7 @@ var postHeadline = function (data) {
         })
         tagsArray = tagsArray.filter(el => el !== "")
     }
-    return Headline.create({ // Create new headline in DB and return the representation with status 201
+    return Headline.create({ // Create new headline in DB a
         source: data.source,
         author: data.author,
         title: data.title,
@@ -26,6 +35,12 @@ var postHeadline = function (data) {
     })
 }
 
+//=============================
+//      searchHeadlines
+// searches for headlines in the DB.
+// params are the parameters of the search.
+// returns a promise
+//=============================
 var searchHeadlines = function (params) {
     return new Promise(function (resolve, reject) {
         let query = {}
@@ -58,6 +73,12 @@ var searchHeadlines = function (params) {
     })
 }
 
+//=============================
+//       findHeadlineById
+// find an headline by an ID
+// id is the id of the headline that you want to find
+// returns a promise
+//=============================
 var findHeadlineById = function (id) {
     return new Promise(function (resolve, reject) {
         Headline.findById(id, function (err, headlines) {
@@ -70,6 +91,13 @@ var findHeadlineById = function (id) {
     })
 }
 
+//=============================
+//       updateHeadline
+// update an headline
+// id is the id of the headline that you want to update
+// data is the data that you want to update (it doesn't need to be complete)
+// returns a promise
+//=============================
 var updateHeadline = function (id, data) {
     return new Promise(function (resolve, reject) {
         Headline.findById(id, function (err, headline) {
@@ -113,6 +141,12 @@ var updateHeadline = function (id, data) {
     })
 }
 
+//=============================
+//       deleteHeadline
+// delete an headline by an ID
+// id is the id of the headline that you want to delete
+// returns a promise
+//=============================
 var deleteHeadline = function (id) {
     return new Promise(function (resolve, reject) {
         Headline.remove({ _id: id }, function (err, headlines) {
@@ -125,6 +159,7 @@ var deleteHeadline = function (id) {
     })
 }
 
+// exporting the functions
 module.exports.possibleCategories = possibleCategories
 module.exports.postHeadline = postHeadline
 module.exports.searchHeadlines = searchHeadlines
