@@ -3,9 +3,8 @@
 //=============================
 const express = require('express')
 const router = express.Router()
-const { check, validationResult } = require('express-validator/check');
-var Source = require('../models/source_model')
-
+const { check, validationResult } = require('express-validator/check')
+var sourceActions = require('../modules/sources_actions')
 var possibleLanguages = ['en', 'ita']
 
 //=============================
@@ -32,15 +31,11 @@ router.post('/', [
     if (!errors.isEmpty()) { // If there are some errors return the errors with status 422
         return res.status(422).json({ errors: errors.array() });
     } else {
-        Source.create({ // Create new headline in DB and return the representation with status 201
-            _id: req.body._id.replace(' ', ''),
-            name: req.body.name,
-            description: req.body.description,
-            url: req.body.url,
-            lang: req.body.lang,
-        }).then(source => res.status(201).json(source)).catch(e => {
+        sourceActions.postSource(req.body).then(source => {
+            res.status(201).json(source)
+        }).catch(e => {
             res.status(422).json({ errors: [{ msg: e }] })
-        });
+        })
     }
 })
 
@@ -49,13 +44,11 @@ router.post('/', [
 //=============================
 // retrieve all resources
 router.get('/', (req, res) => {
-    Source.find(req.query).exec(function (err, sources) {
-        if (err) {
-            res.status(500).json({ "errors": [{ "msg": "internal error" }] })
-        } else {
-            res.status(200).json(sources)
-        }
-    });
+    sourceActions.searchSources(req.query).then(results => {
+        res.status(200).json(results)
+    }).catch(e => {
+        res.status(500).json(e)
+    })
 })
 
 //=============================
@@ -63,13 +56,11 @@ router.get('/', (req, res) => {
 //=============================
 // Retrieve a single resource with the id specified in the URL
 router.get('/:id', (req, res) => {
-    Source.find({ _id: req.params.id }).exec(function (err, source) {
-        if (err) {
-            res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
-        } else {
-            res.status(200).json(source)
-        }
-    });
+    sourceActions.getSourceById(req.params.id).then(results => {
+        res.status(200).json(results)
+    }).catch(e => {
+        res.status(404).json(e)
+    })
 })
 
 //=============================
@@ -77,25 +68,10 @@ router.get('/:id', (req, res) => {
 //=============================
 // Update a single resource, id specified in the URL, parameters in the body
 router.put('/:id', (req, res) => {
-    Source.find({ _id: req.params.id }).exec(function (err, source) {
-        if (err) {
-            res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
-        } else {
-            // update attribute only if not undefined and if attribute is valid
-            if (possibleLanguages.includes(req.body.lang)) {
-                source.lang = req.body.lang
-            }
-            source.url = ((req.body.url !== undefined) ? req.body.url : source.url)
-            source.name = ((req.body.name !== undefined) ? req.body.name : source.name)
-            source.description = ((req.body.description !== undefined) ? req.body.description : source.description)
-        }
-        source.save(function (err) { // update entry in DB
-            if (err) {
-                res.status(500).send(err);
-            } else {
-                res.status(204).send()
-            }
-        })
+    sourceActions.updateSource(req.params.id, req.body).then(() => {
+        res.status(204).json()
+    }).catch(err => {
+        res.status(err.status).json({ "errors": err.errors })
     })
 })
 
@@ -104,12 +80,10 @@ router.put('/:id', (req, res) => {
 //=============================
 // Delete a resource with a particular id
 router.delete('/:id', (req, res) => {
-    Source.remove({ _id: req.params.id }, function (err, source) {
-        if (err) {
-            res.status(404).json({ "errors": [{ "location": "query", "param": "id", "msg": "resource not found" }] })
-        } else {
-            res.status(204).send()
-        }
-    });
+    sourceActions.deleteSource(req.params.id).then(() => {
+        res.status(204).json()
+    }).catch(err => {
+        res.status(404).json(err)
+    })
 })
 module.exports = router
