@@ -1,5 +1,42 @@
 # YANA
-_Yet Another News Aggregator_
+Yet Another News Aggregator_
+
+## COSE DA SISTEMARE
+### NEWS HEADLINES
+- get /headlines con n url restituisce tutti gli esistenti (url in body???)
+- gestire errori e reject delle promises
+- fare testing separando le funzioni
+- commentare codice
+- scrivere api
+### RSS ADAPTER
+- aggiungere RSS di ESPN
+- gestire errori e reject delle promises
+- fare testing separando le funzioni
+- commentare codice
+- scrivere api
+### NEWS LOGIC
+- manda una sola get a news headlines
+- "cannot read property length of undefined at 207:41" -> probabilmente quando tags non va
+- tags per similarity alta invece che ==
+- restituisce news complete invece che solo l'URL
+- gestire errori e reject delle promises
+- fare testing separando le funzioni
+- commentare codice
+- scrivere api
+### NEWS AGGREGATOR
+- integrare RSS ESPN
+- fixare il fatto che guardian non mette ora giusta
+- effettua una POST in automatico ogni 10 minuti
+- deve passare page e pageSize a newsLogic
+- gestire errori e reject delle promises
+- fare testing separando le funzioni
+- commentare codice
+- scrivere api
+### UI
+- reperire dati da pc fisso
+- aggiungere caricamento
+- aggiungere search per tempo
+
 ***
 YANA is a news aggregator. Yes, another news aggregator. Why develop it? Well, because as of today, there isn't a real point of reference for this kind of service that developers could use to implement their own application. The famous "Google News", for example, has deprecated its API from May of 2011. Other competitors, such as "NewsAPI", allow only few possibilities to extract news. For my project, I have therefore decided to implement a service that allows user to extract news from the major online newspapers.
 ***
