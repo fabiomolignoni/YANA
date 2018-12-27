@@ -16,7 +16,8 @@ var HeadlineSchema = new Schema({
     },
     url: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     datetime: {
         type: Date,

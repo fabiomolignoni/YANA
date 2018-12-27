@@ -39,7 +39,7 @@ router.post('/', [
             url: req.body.url,
             lang: req.body.lang,
         }).then(source => res.status(201).json(source)).catch(e => {
-            res.status(422).json({ errors: [{ msg: "error while saving data" }] })
+            res.status(422).json({ errors: [{ msg: e }] })
         });
     }
 })
