@@ -1,11 +1,9 @@
 # YANA
-Yet Another News Aggregator_
+_Yet Another News Aggregator_
 
 ## COSE DA SISTEMARE
 ### NEWS HEADLINES
-- get /headlines con n url restituisce tutti gli esistenti (url in body???)
-- gestire errori e reject delle promises
-- fare testing separando le funzioni
+- fare testing
 - commentare codice
 - scrivere api
 ### RSS ADAPTER
@@ -18,6 +16,7 @@ Yet Another News Aggregator_
 - manda una sola get a news headlines
 - "cannot read property length of undefined at 207:41" -> probabilmente quando tags non va
 - tags per similarity alta invece che ==
+- invece di fare n call, fai 1 call prendendo tutte le notizie per quella source
 - restituisce news complete invece che solo l'URL
 - gestire errori e reject delle promises
 - fare testing separando le funzioni

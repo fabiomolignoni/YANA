@@ -26,6 +26,9 @@ mongoose.connect(process.env.MONGOOSE_URL, { useNewUrlParser: true }) // connect
 //=============================
 app.use('/v1/sources', source_routes)   // set routes
 app.use('/v1/headlines', headline_routes)   // set routes
+app.get('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
 
 //=============================
 //        START SERVER
