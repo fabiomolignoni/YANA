@@ -16,7 +16,9 @@ function theVergeXml2Json(path) {
         request(the_verge_endpoint + path, function (error, response, body) {
             convert.xmlDataToJSON(body).then(jsonPage => { // convert xml to json
                 response = {}
-                response.title = "The Verge - News"
+                response.title = jsonPage.feed.title[0]
+                response.link = jsonPage.feed.link[0].$.href
+                response.lastUpdated = new Date(jsonPage.feed.updated[0])
                 allNews = []
                 for (entry of jsonPage.feed.entry) {
                     // set news parameters
@@ -55,7 +57,9 @@ function bbcXml2Json(path) {
             }
             convert.xmlDataToJSON(body).then(jsonPage => { // convert xml to json
                 var result = {}
-                result.title = 'BBC - News'
+                result.title = jsonPage.rss.channel[0].title[0]
+                result.link = jsonPage.rss.channel[0].link[0]
+                result.lastUpdated = new Date(jsonPage.rss.channel[0].lastBuildDate[0])
                 var news = []
                 for (let item of jsonPage.rss.channel[0].item) {
                     // set news parameters
