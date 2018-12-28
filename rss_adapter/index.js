@@ -21,6 +21,10 @@ app.use(bodyParser.json());             // Useful to extract data from a POST
 //=============================
 app.use('/v1/the-verge', the_verge_routes)   // set routes
 app.use('/v1/bbc', bbc_routes)   // set routes
+app.get('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+
 //=============================
 //        START SERVER
 //=============================
