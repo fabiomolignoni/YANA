@@ -32,7 +32,8 @@ router.post('/', [
             headlineActions.postHeadline(req.body).then(headline => {
                 res.status(201).json(headline)
             }).catch(e => {
-                res.status(500).json({ "errors": [{ "msg": e }] })
+                console.log(e)
+                res.status(500).json({ "errors": [{ "msg": e.errmsg }] })
             })
         }
     })
