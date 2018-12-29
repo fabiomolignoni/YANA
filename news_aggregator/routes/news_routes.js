@@ -3,18 +3,8 @@
 //=============================
 const express = require('express')
 const router = express.Router({ mergeParams: true })
-const request = require('request')
-require('dotenv').config()
+const newsActions = require('../modules/news_actions')
 
-//=============================
-//     VARIABLES FROM ENV
-//=============================
-const rss_adapter_endpoint = process.env.RSS_ADAPTER || 'localhost:8081/v1'
-const news_logic_endpoint = process.env.NEWS_LOGIC || 'http://localhost:8082/v1'
-const guardian_key = process.env.GUARDIAN_KEY
-const nyt_key = process.env.NYT_KEY
-const guardian_endpoint = 'https://content.guardianapis.com/search'
-const nyt_endpoint = 'https://api.nytimes.com/svc/search/v2/articlesearch.json'
 //=============================
 //     SET DEFAULT HEADERS
 //=============================
@@ -25,185 +15,45 @@ router.use(function (req, res, next) {
 });
 
 router.post('/', (req, res) => {
-    Promise.all([updateNYTEntries(),
-    updateBBCEntries(),
-    updateGuardianEntries(),
-    updateTheVergeEntries()]).then(values => {
-        res.json(values)
-    })
+    Promise.all(newsActions.updateNYTEntries(),
+        newsActions.updateBBCEntries(),
+        newsActions.updateGuardianEntries(),
+        newsActions.updateTheVergeEntries()).then(values => {
+            res.status(201).json(values)
+        }).catch(e => {
+            res.status(500).json({ "errors": [{ "msg": "Dandelion limit exceeded. Try tomorrow." }] })
+        })
 })
 
 router.get('/', (req, res) => {
     let params = {}
-    if (req.query.source != undefined) {
-        params.source = req.query.source
-    }
-    if (req.query.datetime != undefined) {
-        params.datetime = req.query.datetime
-    }
-    if (req.query.category != undefined) {
-        params.category = req.query.category
-    }
-    if (req.query.from != undefined) {
-        params.from = req.query.from
-    }
-    if (req.query.to != undefined) {
-        params.to = req.query.to
-    }
-    if (req.query.q != undefined) {
-        params.q = req.query.q
-    }
-    getNews(params).then(results => {
+    params.source = req.query.source
+    params.datetime = req.query.datetime
+    params.category = req.query.category
+    params.from = req.query.from
+    params.to = req.query.to
+    params.q = req.query.q
+    params.page = req.query.page
+    params.pageSize = req.query.pageSize
+    newsActions.getNews(params).then(results => {
         res.json(results)
     })
 })
 
 router.get('/:tags', (req, res) => {
-    console.log("qua")
     let params = {}
-    if (req.query.source != undefined) {
-        params.source = req.query.source
-    }
-    if (req.query.datetime != undefined) {
-        params.datetime = req.query.datetime
-    }
-    if (req.query.category != undefined) {
-        params.category = req.query.category
-    }
-    if (req.query.from != undefined) {
-        params.from = req.query.from
-    }
-    if (req.query.to != undefined) {
-        params.to = req.query.to
-    }
-    if (req.query.q != undefined) {
-        params.q = req.query.q
-    }
+    params.source = req.query.source
+    params.datetime = req.query.datetime
+    params.category = req.query.category
+    params.from = req.query.from
+    params.to = req.query.to
+    params.q = req.query.q
+    params.page = req.query.page
+    params.pageSize = req.query.pageSize
     params.tags = req.params.tags
-    console.log(params.tags)
-    getNews(params).then(results => {
+    newsActions.getNews(params).then(results => {
         res.json(results)
     })
 })
 
-function getNews(params) {
-    console.log(params)
-    return new Promise(function (resolve, reject) {
-        request({ url: news_logic_endpoint + "/news", qs: params }, function (err, response, body) {
-            resolve(JSON.parse(body))
-        })
-    })
-}
-
-
-
-function updateNYTEntries() {
-    return new Promise(function (resolve, reject) {
-        request.get({
-            url: nyt_endpoint,
-            qs: {
-                'api-key': nyt_key,
-                'begin_date': parseInt(getNYTDate())
-            },
-        }, function (err, response, body) {
-            body = JSON.parse(body)
-            let newsToPost = parseNYTNews(body.response.docs)
-            postNews('new-york-times', newsToPost).then(res => resolve(res))
-        })
-    })
-
-}
-
-function parseNYTNews(news) {
-    let results = []
-    for (notizia of news) {
-        let current = {}
-        current.url = notizia.web_url
-        current.body = notizia.snippet
-        current.title = notizia.headline.main
-        current.datetime = notizia.pub_date
-        results.push(current)
-    }
-    return results
-
-}
-
-function getNYTDate() {
-    var d = new Date(),
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate() - 1,
-        year = d.getFullYear();
-
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
-
-    return [year, month, day].join('');
-}
-
-function updateGuardianEntries() {
-    return new Promise(function (resolve, reject) {
-        request.get(guardian_endpoint + "?api-key=" + guardian_key + "&type=article&page-size=100",
-            function (error, response, body) {
-                let news = JSON.parse(body)
-                let newsToPost = parseGuardianNews(news.response.results)
-                postNews('the-guardian', newsToPost).then(res => resolve(res))
-            })
-    })
-}
-
-function parseGuardianNews(news) {
-    let results = []
-    for (notizia of news) {
-        let current = {}
-        current.title = notizia.webTitle
-        current.url = notizia.webUrl
-        current.datetime = notizia.webPubblicationDate
-        results.push(current)
-    }
-    return results
-}
-
-function updateBBCEntries() {
-    let all = []
-    var pages = ['/world', '/uk', '/business', '/politics',
-        '/health', '/education', '/science_and_environment', '/technology', '/entertainment_and_arts']
-    for (page of pages) {
-        all.push(PostRSSFeed("/bbc" + page, "bbc-news"))
-    }
-    return all
-}
-
-function updateTheVergeEntries() {
-    let all = []
-    var pages = ['/google', '/apple', '/apps', '/culture', '/microsoft', '/photography', '/policy', '/web']
-    for (page of pages) {
-        all.push(PostRSSFeed("/the-verge" + page, 'the-verge'))
-    }
-    return all
-}
-
-function postNews(source, news) {
-    return new Promise(function (resolve, reject) {
-        let newsToSend = {}
-        newsToSend.source = source
-        newsToSend.news = news
-        console.log(news_logic_endpoint + "/news")
-        request.post({
-            url: news_logic_endpoint + "/news",
-            body: newsToSend,
-            json: true
-        }, function (err, res, bod) {
-            resolve(bod)
-        })
-    })
-}
-
-function PostRSSFeed(page, source) {
-    return new Promise(function (resolve, reject) {
-        request.get(rss_adapter_endpoint + page, function (error, response, body) {
-            let recieved = JSON.parse(body)
-            postNews(source, recieved.news).then(result => resolve(result))
-        })
-    })
-}
 module.exports = router
