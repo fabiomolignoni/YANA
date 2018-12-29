@@ -3,7 +3,6 @@ _Yet Another News Aggregator_
 
 ## COSE DA SISTEMARE
 ### UI
-- reperire dati da pc fisso
 - aggiungere caricamento
 - aggiungere search per tempo
 

@@ -14,7 +14,25 @@
     color: #404040;
     padding: 20px;
   }
+
+  .labelTopic{
+    font-family: 'Oswald', sans-serif;
+    text-transform: initial;
+    font-size: 0.7em;
+  }
+
+  .footer {
+    font-family: 'PT Serif', serif;
+    text-transform: initial;
+    font-size: 0.7em;
+    font-weight: normal;
+    text-align: center;
+  }
   
+.selectTopic{
+  margin-right:2em;
+}
+
   blockquote {
     font-family: 'Oswald', sans-serif;
     line-height: 1.2em;
@@ -76,7 +94,8 @@
 
 
 .selection-button:hover{
-    text-decoration: underline
+    text-decoration: underline;
+    cursor: pointer;
 }
 
   h4{
@@ -124,6 +143,12 @@
   .date{
       font-style: italic
   }
+
+  .news{
+    overflow: hidden; /* fix for Firefox */
+break-inside: avoid-column;
+-webkit-column-break-inside: avoid;
+  }
   
   @media only all and (min-width: 600px) {
     article {
@@ -157,5 +182,6 @@
       -moz-hyphens: auto;
       -ms-hyphens: auto;
       hyphens: auto;
+      margin:0;
     }
   }

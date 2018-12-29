@@ -1,12 +1,27 @@
+
+var currentPage = 0
+var typeOfPage = "latest"
+
 $(document).ready(function () {
     var d = new Date();
     document.getElementById("date").innerHTML = getStringDate(d)
-    loadLatest(0)
+    loadLatest()
+    // document.getElementById("previousButton").disabled = true;
 })
 
-function loadLatest(page) {
+function setLatest() {
+    currentPage = 0
+    loadLatest()
+}
+
+function searchByTopic() {
+    currentPage = 0
+    loadByTopic()
+}
+
+function loadLatest() {
     document.getElementById("search").style.display = "none"
-    $.get("https://yana-news-aggregator.herokuapp.com/v1/news", function (data) {
+    $.get("https://yana-news-aggregator.herokuapp.com/v1/news?page=" + currentPage, function (data) {
         document.getElementById("news_container").innerHTML = ""
         for (x of data.news) {
             document.getElementById("news_container").innerHTML += createNewsAsString(x)
@@ -33,9 +48,42 @@ function loadSources() {
 function loadByTopic() {
     let values = document.getElementById("userTags").value.split(",")
     values = values.join("|")
-    console.log(values)
-    $.get("https://yana-news-aggregator.herokuapp.com/v1/news/" + values, function (data) {
-        document.getElementById("search").style.display = "none"
+    let options = ""
+    var e = document.getElementById("selectCategory");
+    var category = e.options[e.selectedIndex].value;
+    options += "?page=" + currentPage + "&"
+    if (category != "all") {
+        options += "category=" + category + "&"
+    }
+    e = document.getElementById("selectSource")
+    var source = e.options[e.selectedIndex].value
+    if (source != "all") {
+        options += "source=" + source
+    }
+    e = document.getElementById("SelectTime")
+    var time = e.options[e.selectedIndex].value
+    if (time != "all") {
+        let now = new Date()
+        options += "from="
+        switch (time) {
+            case "1":
+                now.setHours(now.getHours() - 2)
+                break
+            case "24":
+                now.setDate(now.getDate() - 1)
+                break
+            case "7":
+                now.setDate(now.getDate() - 7)
+                break
+            case "30":
+                now.setMonth(now.setMonth() - 1)
+                break
+        }
+        options += now
+        console.log(now.toLocaleString())
+    }
+    console.log("https://yana-news-aggregator.herokuapp.com/v1/news/" + values + options)
+    $.get("https://yana-news-aggregator.herokuapp.com/v1/news/" + values + options, function (data) {
         document.getElementById("news_container").innerHTML = ""
         for (x of data.news) {
             document.getElementById("news_container").innerHTML += createNewsAsString(x)
@@ -49,17 +97,44 @@ function byTopic() {
 
 function createNewsAsString(news) {
     let d = new Date(news.datetime)
-    let result = '<h3><a target="_blank"  href="' + news.url + '">' + news.title + "</a></h3>"
+    let result = '<div class="news"><h3><a target="_blank"  href="' + news.url + '">' + news.title + "</a></h3>"
     result += "<h4>" + news.source + "</h4>"
     result += '<p class="text date">' + getStringDate(d) + " " + ("00" + d.getHours()).slice(-2) + ":" +
         ("00" + d.getMinutes()).slice(-2) + "</p>"
     result += '<p class="text">' + news.body + "</p>"
+    result += "<p<><b>Category:</b> " + news.category + "</p>"
+    result += "<p><b>Topics:</b> " + news.tags.join(", ") + "</p><hr></div>"
     return result
 }
 
 function createSourceAsString(source) {
-    let result = '<h3><a target="_blank"  href="' + source.url + '">' + source.name + "</a></h3>"
+    let result = '<div class="news"><h3><a target="_blank"  href="' + source.url + '">' + source.name + "</a></h3>"
     result += '<p class="text date"><b>Language: </b>' + source.lang + "</p>"
-    result += '<p class="text">' + source.description + "</p>"
+    result += '<p class="text">' + source.description + "</p></div>"
     return result
+}
+
+function nextPage() {
+    currentPage += 1
+    if (currentPage == 1) {
+        document.getElementById("previousButton").disabled = false;
+    }
+    if (typeOfPage == "latest") {
+        loadLatest()
+    } else if (typeOfPage == "topic") {
+        loadByTopic()
+    }
+}
+function previousPage() {
+    if (currentPage > 0) {
+        currentPage -= 1
+        if (currentPage == 0) {
+            document.getElementById("previousButton").disabled = true;
+        }
+        if (typeOfPage == "latest") {
+            loadLatest()
+        } else if (typeOfPage == "topic") {
+            loadByTopic()
+        }
+    }
 }
