@@ -2,11 +2,6 @@
 _Yet Another News Aggregator_
 
 ## COSE DA SISTEMARE
-### NEWS AGGREGATOR
-- effettua una POST in automatico ogni 10 minuti
-- aggiungere path di default per non definito
-- commentare codice
-- scrivere api
 ### UI
 - reperire dati da pc fisso
 - aggiungere caricamento

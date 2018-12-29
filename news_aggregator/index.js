@@ -5,6 +5,7 @@ var express = require("express")        // handling server
 var morgan = require('morgan')          // Used for debugging
 var bodyParser = require('body-parser')
 require('dotenv').config()              // to handle environment variables
+const newsActions = require('./modules/news_actions')
 //=============================
 //          SETTINGS
 //=============================
@@ -24,7 +25,29 @@ app.use(bodyParser.json());             // Useful to extract data from a POST
 //=============================
 app.use('/v1/sources', source_routes)   // set routes
 app.use('/v1/news', news_routes)   // set routes
+// from here default routes
+app.get('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.post('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.put('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.delete('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
 
+//=============================
+// UPDATE DATA EVERY 15 MINUTES
+//=============================
+newsActions.updateNews().then(val => { // call on startup
+    console.log("Updated data on startup")
+})
+setInterval(function () {
+    newsActions.updateNews()
+}, 15 * 60 * 1000);
 //=============================
 //        START SERVER
 //=============================

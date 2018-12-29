@@ -3,23 +3,27 @@
 //=============================
 const express = require('express')
 const router = express.Router({ mergeParams: true })
-const request = require('request')
-require('dotenv').config()
+const sourceActions = require('../modules/source_actions')
 
 //=============================
-//     VARIABLES FROM ENV
+//          GET sources
+// get all sources in the DB via news_headline
 //=============================
-const news_headlines_endpoint = process.env.NEWS_HEADLINES || 'localhost:8080/v1'
-
 router.get('/', (req, res) => {
-    request(news_headlines_endpoint + "/sources", function (err, response, body) {
-        res.json(JSON.parse(body))
+    sourceActions.getAllSources().then(val => {
+        res.status(200).json(val)
     })
 })
 
+//=============================
+//          GET sources/:id
+// get source with that particular id
+//=============================
 router.get('/:id', (req, res) => {
-    request(news_headlines_endpoint + "/sources/" + req.params.id, function (err, response, body) {
-        res.json(JSON.parse(body))
+    sourceActions.getSingleSource(req.params.id).then(val => {
+        res.status(200).json(val)
+    }).catch(e => {
+        res.status(404).json({ "errors": [{ "msg": e }] })
     })
 })
 
