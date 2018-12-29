@@ -67,6 +67,8 @@ var postNews = function (data) {
                     }
                     resolve(result) // return the results
                 })
+            }).catch(e => {
+                reject(e)
             })
         })
     })
@@ -189,7 +191,7 @@ function setNewsParameters(news) {
     if (tagsSource == undefined || tagsSource == "") {
         tagsSource = news.title
     }
-    return Promise.all([getNewsCategory(news.title), getNewsTags(tagsSource)]).then(function (listOfResults) {
+    return Promise.all(getNewsCategory(news.title), getNewsTags(tagsSource)).then(function (listOfResults) {
         if (listOfResults[0].categories.length > 0) {
             news.category = listOfResults[0].categories[0].name
         } else {

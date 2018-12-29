@@ -3,12 +3,8 @@ _Yet Another News Aggregator_
 
 ## COSE DA SISTEMARE
 ### NEWS AGGREGATOR
-- fixare il fatto che guardian non mette ora giusta
 - effettua una POST in automatico ogni 10 minuti
-- deve passare page e pageSize a newsLogic
 - aggiungere path di default per non definito
-- gestire errori e reject delle promises
-- separando le funzioni
 - commentare codice
 - scrivere api
 ### UI
