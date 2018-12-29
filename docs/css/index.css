@@ -16,17 +16,17 @@
   }
 
   .labelTopic{
-    font-family: 'Oswald', sans-serif;
-    text-transform: initial;
-    font-size: 0.7em;
+    font-family: 'Oswald', sans-serif !important;
+    text-transform: initial !important;
+    font-size: 0.7em !important;
   }
 
   .footer {
-    font-family: 'PT Serif', serif;
-    text-transform: initial;
-    font-size: 0.7em;
-    font-weight: normal;
-    text-align: center;
+    font-family: 'PT Serif', serif !important;
+    text-transform: initial !important;
+    font-size: 0.7em !important;
+    font-weight: normal !important;
+    text-align: center !important;
   }
   
 .selectTopic{
