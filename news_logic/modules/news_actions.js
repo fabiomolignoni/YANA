@@ -1,0 +1,287 @@
+//=============================
+//           IMPORT
+//=============================
+const request = require('request')
+const utf8 = require('utf8')
+const stringSimilarity = require('string-similarity')
+require('dotenv').config()
+
+//=============================
+//     VARIABLES FROM ENV
+//=============================
+const headlines_endpoint = process.env.HEADLINES_URL || 'localhost:8080/v1'
+const dandelion_endpoint = process.env.DANDELION_URL || 'https://api.dandelion.eu/datatxt/'
+const dandelion_token = process.env.DANDELION_TOKEN
+
+
+//=============================
+//        POST NEWS
+// given a set of news it takes only the news not yet posted
+// it defines a category and a set of tags for that news
+// and then post all the news to news_headlines
+//=============================
+var postNews = function (data) {
+    return new Promise(function (resolve, reject) {
+
+        let recievedNews = undefined
+        // recivedNews parse news as json if data being sent is a string
+        if (typeof data.news === 'string') {
+            recievedNews = JSON.parse(data.news)
+        } else {
+            recievedNews = data.news
+        }
+        let dict = {} // sum of all results of the post, it will be returned
+        let toBeInserted = [] // news that are not already in the DB
+
+        getNews({ "source": data.source }).then(results => { // take all news for that source
+            let urlList = results.map(function (item) { // take only url
+                return item.url
+            })
+
+            for (current of recievedNews) { // take only news that needs to be posted
+                if (urlList.includes(current.url)) {
+                    dict[current.url] = { "errors": [{ "msg": "News already in our systems" }] }
+                } else {
+                    toBeInserted.push(current)
+                }
+            }
+            Promise.all(setCompleteNews(toBeInserted)).then(results => { // set complete news
+
+                Promise.all(postAllNews(results, data.source)).then(postData => { // post all news
+                    for (index in postData) {
+                        // create response for each news that I've posted
+                        let current = postData[index]
+                        if (current.body.statusCode != 201) { // if there are errors post errors
+                            dict[recievedNews[index].url] = { "errors": current.body.errors }
+                        } else { // otherwise return the news
+                            dict[recievedNews[index].url] = { "news": current.body }
+                        }
+                    }
+                    // results
+                    let result = [] // now transform a dictionary into an array to return the results
+                    for (let key in dict) {
+                        current = {}
+                        current.url = key
+                        current.response = dict[key]
+                        result.push(current)
+                    }
+                    resolve(result) // return the results
+                })
+            })
+        })
+    })
+}
+
+//=============================
+//   GET NEWS WITH PARAMETERS
+// allows to do get to news_headlines with advanced parameters
+// it implements pagination (pageSize default = 10, max 100) 
+// other than basic parameters (e.g: category, source), it allows
+// to select by tags and by title similarity
+// returns set of news
+//=============================
+function getNewsWithParameters(params) {
+    var pageSize = params.pageSize == undefined ? 10 : parseInt(params.pageSize)
+    if (pageSize > 100) {
+        pageSize = 100
+    } else if (pageSize < 10) {
+        pageSize = 10
+    }
+    var page = params.page == undefined ? 0 : parseInt(params.page)
+    let params = {}
+    if (params.source != undefined) {
+        params.source = params.source
+    }
+    if (params.datetime != undefined) {
+        params.datetime = params.datetime
+    }
+    if (params.category != undefined) {
+        params.category = params.category
+    }
+    if (params.from != undefined) {
+        params.from = params.from
+    }
+    if (params.to != undefined) {
+        params.to = params.to
+    }
+    getNews(params).then(results => {
+        results = results.body
+        let reqTitle = params.q
+        let reqTags = params.tags
+        if (reqTags != undefined) {
+            reqTags = reqTags.split("|")
+            var similarityIndex = []
+            for (x of results) {
+                let maxIndex = 0
+                for (tag of x.tags) {
+                    for (reqtag of reqTags) {
+                        maxIndex = Math.max(maxIndex, stringSimilarity.compareTwoStrings(reqtag, tag))
+                    }
+                }
+                if (maxIndex > 0.78) {
+                    similarityIndex.push([x, maxIndex])
+                }
+            }
+            similarityIndex.sort(function (a, b) { return b[1] - a[1] })
+            results = similarityIndex.map(function (value, index) { return value[0] })
+        }
+        if (reqTitle != undefined) {
+            let similarityIndex = []
+            for (x of results) {
+                index = (stringSimilarity.compareTwoStrings(reqTitle, x.title))
+                if (index > 0.2) {
+                    similarityIndex.push([x, index])
+                }
+            }
+            similarityIndex.sort(function (a, b) { return b[1] - a[1] })
+            results = similarityIndex.map(function (value, index) { return value[0] })
+        } else {
+            results = results.sort(function (a, b) {
+                a = new Date(a.datetime)
+                b = new Date(b.datetime)
+                return b - a
+            })
+
+        }
+        finalJSON = {}
+        finalJSON.totalResults = results.length
+        finalJSON.news = results.slice(pageSize * page, pageSize * page + pageSize)
+        return (finalJSON)
+    })
+}
+
+//=============================
+//        GET NEWS
+// get news from news_headline service
+// params is parameters of the get 
+// return a promise
+//=============================
+function getNews(params) {
+    return new Promise(function (resolve, reject) {
+        urlNews = "https://" + headlines_endpoint + "/v1/headlines?"
+        for (name in params) {
+            urlNews += name + "=" + params[name] + "&"
+        }
+        request(urlNews, function (error, response, body) { // do the get to the service
+            if (response.statusCode != 200) { // if there's some error reject
+                reject(response.statusCode)
+            } else {
+                resolve(JSON.parse(body))
+            }
+        })
+    })
+}
+
+//=============================
+//      SET COMPLETE NEWS
+// given a set of news returns a set of promises
+// with .then you can access to the complete news (with category and tags)
+//=============================
+function setCompleteNews(news) {
+    var all = []
+    for (notizia of news) {
+        console.log(notizia)
+        all.push(setNewsParameters(notizia))
+    }
+    return all
+}
+
+
+//=============================
+//     SET NEWS PARAMETERS
+// given a news returns it with a category and a set of tags
+//=============================
+function setNewsParameters(news) {
+    let tagsSource = news.body // for tags is better use body, but if it is undefined, we use title
+    if (tagsSource == undefined || tagsSource == "") {
+        tagsSource = news.title
+    }
+    return Promise.all([getNewsCategory(news.title), getNewsTags(tagsSource)]).then(function (listOfResults) {
+        if (listOfResults[0].categories.length > 0) {
+            news.category = listOfResults[0].categories[0].name
+        } else {
+            news.category = "general" // if dandelion was not able to set the category returns as general
+        }
+        let tags = []
+        for (element of listOfResults[1].annotations) { // take tags only with confidence >0.75
+            if (element.confidence > 0.75 && element.title != "") {
+                tags.push(element.title)
+            }
+        }
+        news.tags = tags.join("|")
+        return news
+    })
+}
+
+//=============================
+//       GET NEWS CATEGORY
+// returns category of a news using dandelion
+// returns a promise
+//=============================
+function getNewsCategory(title) {
+    title = utf8.encode(title)
+    return new Promise(function (resolve, reject) {
+        // create the url
+        let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&token=' + dandelion_token
+        url += '&text=' + title + "&min_score=0.2"
+        url = encodeURI(url)
+        request(url, function (error, response, body) { // take category from dandelion
+            if (response.statusCode != 200) {
+                reject(response.statusCode)
+            } else {
+                var finalResponse = JSON.parse(body);
+                resolve(finalResponse)
+            }
+        })
+    })
+}
+
+//=============================
+//        GET NEWS TAGS
+// given a news it returns its tags using dandelion
+// returns a promise
+//=============================
+function getNewsTags(title) {
+    return new Promise(function (resolve, reject) {
+        // create url
+        let url = dandelion_endpoint + 'nex/v1/?token=' + dandelion_token
+        url += '&text=' + title
+        url = encodeURI(url)
+        request(url, function (error, response, body) { // take tags from dandelion
+            if (response.statusCode != 200) {
+                reject(response.statusCode)
+            } else {
+                var finalResponse = JSON.parse(body);
+                resolve(finalResponse)
+            }
+        })
+    })
+}
+
+
+function postAllNews(news, source) {
+
+    var all = []
+    for (let notizia of news) {
+        notizia.source = source
+        all.push(postANews(notizia))
+    }
+    return all
+}
+
+
+function postANews(news) {
+    return new Promise(function (resolve, reject) {
+        request.post({
+            url: "https://" + headlines_endpoint + "/v1/headlines",
+            body: news,
+            json: true
+        }, function optionalCallback(err, httpResponse, body) {
+            body.statusCode = httpResponse.statusCode
+            resolve({ body })
+        })
+    })
+}
+
+module.exports.postNews = postNews
+module.exports.getNewsWithParameters = getNewsWithParameters

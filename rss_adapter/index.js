@@ -24,7 +24,15 @@ app.use('/v1/bbc', bbc_routes)   // set routes
 app.get('*', function (req, res) {
     res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
 })
-
+app.post('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.put('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.delete('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
 //=============================
 //        START SERVER
 //=============================

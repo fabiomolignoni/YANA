@@ -20,10 +20,18 @@ app.use(bodyParser.json());             // Useful to extract data from a POST
 //          ROUTES
 //=============================
 app.use('/v1/news', news_routes)   // set routes
-// GET NEWS BY FONTE, BY CATEGORY, BY TAGS, LAST 24 HOURS, LAST 48 HOURS, LAST WEEK, LAST MONTH
-// SEARCH BY TITLE
-// INSERT A SINGLE NEWS AND ADD CATEGORY AND TAGS
-// ADD A SET OF NEWS THAT ARE NOT IN THE DB AND ADD CATEGORY AND TAGS
+app.get('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.post('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.put('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
+app.delete('*', function (req, res) {
+    res.status(404).json({ "errors": [{ "msg": req.method + " on " + req.originalUrl + " is not defined" }] })
+})
 
 //=============================
 //        START SERVER
