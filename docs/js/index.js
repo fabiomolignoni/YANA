@@ -79,8 +79,7 @@ function loadByTopic() {
                 now.setMonth(now.setMonth() - 1)
                 break
         }
-        options += now
-        console.log(now.toLocaleString())
+        options += now.toISOString()
     }
     console.log("https://yana-news-aggregator.herokuapp.com/v1/news/" + values + options)
     $.get("https://yana-news-aggregator.herokuapp.com/v1/news/" + values + options, function (data) {
@@ -101,7 +100,8 @@ function createNewsAsString(news) {
     result += "<h4>" + news.source + "</h4>"
     result += '<p class="text date">' + getStringDate(d) + " " + ("00" + d.getHours()).slice(-2) + ":" +
         ("00" + d.getMinutes()).slice(-2) + "</p>"
-    result += '<p class="text">' + news.body + "</p>"
+    if (news.body != undefined)
+        result += '<p class="text">' + news.body + "</p>"
     result += "<p<><b>Category:</b> " + news.category + "</p>"
     result += "<p><b>Topics:</b> " + news.tags.join(", ") + "</p><hr></div>"
     return result
@@ -124,6 +124,7 @@ function nextPage() {
     } else if (typeOfPage == "topic") {
         loadByTopic()
     }
+    $('html, body').animate({ scrollTop: 0 }, 'medium');
 }
 function previousPage() {
     if (currentPage > 0) {

@@ -1,11 +1,6 @@
 # YANA
 _Yet Another News Aggregator_
 
-## COSE DA SISTEMARE
-### UI
-- aggiungere caricamento
-- aggiungere search per tempo
-
 ***
 YANA is a news aggregator. Yes, another news aggregator. Why develop it? Well, because as of today, there isn't a real point of reference for this kind of service that developers could use to implement their own application. The famous "Google News", for example, has deprecated its API from May of 2011. Other competitors, such as "NewsAPI", allow only few possibilities to extract news. For my project, I have therefore decided to implement a service that allows user to extract news from the major online newspapers.
 ***

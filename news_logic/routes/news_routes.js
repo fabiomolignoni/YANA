@@ -35,6 +35,8 @@ router.post('/', (req, res) => {
 router.get('/', function (req, res) {
     newsActions.getNewsWithParameters(req.query).then(result => {
         res.status(200).json(result)
+    }).catch(e => {
+        res.status(500).json({ "errors": [{ "msg": "internal error" }] })
     })
 })
 

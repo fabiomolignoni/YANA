@@ -46,7 +46,7 @@ var postNews = function (data) {
                 }
             }
             Promise.all(setCompleteNews(toBeInserted)).then(results => { // set complete news
-
+                console.log("sono dentro")
                 Promise.all(postAllNews(results, data.source)).then(postData => { // post all news
                     for (index in postData) {
                         // create response for each news that I've posted
@@ -142,6 +142,8 @@ function getNewsWithParameters(params) {
             finalJSON.pageSize = pageSize
             finalJSON.news = results.slice(pageSize * page, pageSize * page + pageSize)
             resolve(finalJSON) // return json
+        }).catch(e => {
+            reject("internal error")
         })
     })
 }
