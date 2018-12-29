@@ -105,7 +105,7 @@ function getNewsWithParameters(params) {
                     let nCorrectTags = 0
                     for (reqtag of reqTags) { // for all tags
                         for (tag of x.tags) { // for all tags of the news verify if it match with some requested tag
-                            if (stringSimilarity.compareTwoStrings(reqtag, tag) > 0.3) {
+                            if (stringSimilarity.compareTwoStrings(reqtag, tag) > 0.4) {
                                 nCorrectTags += 1
                                 break
                             }
