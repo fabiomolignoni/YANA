@@ -63,7 +63,7 @@ function updateNYTEntries() {
                 postNews('new-york-times', newsToPost).then(res => { // post the news
                     resolve(res)
                 }).catch(e => {
-                    reject("impossible to save NYT news")
+                    resolve({ "errors": "impossible to save NYT news" })
                 })
             }
         })
@@ -121,7 +121,7 @@ function updateGuardianEntries() {
                     postNews('the-guardian', newsToPost).then(res => { // post the news 
                         resolve(res)
                     }).catch(e => {
-                        reject("impossible to save the guardian news")
+                        resolve({ "errors": "impossible to save Guardian news" })
                     })
                 }
             })
@@ -155,7 +155,7 @@ function updateBBCEntries() {
     for (page of pages) {
         all.push(PostRSSFeed("/bbc" + page, "bbc-news")) // post news for each possible page
     }
-    return all
+    return Promise.all(all)
 }
 
 //=============================
@@ -168,7 +168,7 @@ function updateTheVergeEntries() {
     for (page of pages) {
         all.push(PostRSSFeed("/the-verge" + page, 'the-verge')) // post news for each possible page
     }
-    return all
+    return Promise.all(all)
 }
 
 //=============================
@@ -209,7 +209,7 @@ function PostRSSFeed(page, source) {
                 postNews(source, recieved.news).then(result => { // post news of that page
                     resolve(result)
                 }).catch(e => {
-                    reject("impossible to save page " + page)
+                    resolve({ "errors": "impossible to save rss feed on " + page })
                 })
             }
         })
