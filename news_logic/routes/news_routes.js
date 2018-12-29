@@ -31,7 +31,9 @@ router.post('/', (req, res) => {
 // return news that match the parameters
 //=============================
 router.get('/', function (req, res) {
-    res.status(200).json(newsActions.getNewsWithParameters(req.query))
+    newsActions.getNewsWithParameters(req.query).then(result => {
+        res.status(200).json(result)
+    })
 })
 
 module.exports = router

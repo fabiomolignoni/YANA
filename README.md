@@ -2,9 +2,6 @@
 _Yet Another News Aggregator_
 
 ## COSE DA SISTEMARE
-### NEWS LOGIC
-- tags per similarity alta invece che ==
-- scrivere api
 ### NEWS AGGREGATOR
 - fixare il fatto che guardian non mette ora giusta
 - effettua una POST in automatico ogni 10 minuti

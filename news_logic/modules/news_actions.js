@@ -81,72 +81,66 @@ var postNews = function (data) {
 // returns set of news
 //=============================
 function getNewsWithParameters(params) {
-    var pageSize = params.pageSize == undefined ? 10 : parseInt(params.pageSize)
-    if (pageSize > 100) {
-        pageSize = 100
-    } else if (pageSize < 10) {
-        pageSize = 10
-    }
-    var page = params.page == undefined ? 0 : parseInt(params.page)
-    let params = {}
-    if (params.source != undefined) {
-        params.source = params.source
-    }
-    if (params.datetime != undefined) {
-        params.datetime = params.datetime
-    }
-    if (params.category != undefined) {
-        params.category = params.category
-    }
-    if (params.from != undefined) {
-        params.from = params.from
-    }
-    if (params.to != undefined) {
-        params.to = params.to
-    }
-    getNews(params).then(results => {
-        results = results.body
-        let reqTitle = params.q
-        let reqTags = params.tags
-        if (reqTags != undefined) {
-            reqTags = reqTags.split("|")
-            var similarityIndex = []
-            for (x of results) {
-                let maxIndex = 0
-                for (tag of x.tags) {
-                    for (reqtag of reqTags) {
-                        maxIndex = Math.max(maxIndex, stringSimilarity.compareTwoStrings(reqtag, tag))
+    return new Promise(function (resolve, reject) {
+        // set pagination parameters
+        var pageSize = params.pageSize == undefined ? 10 : parseInt(params.pageSize)
+        if (pageSize > 100) {
+            pageSize = 100
+        } else if (pageSize < 10) {
+            pageSize = 10
+        }
+        var page = params.page == undefined ? 0 : parseInt(params.page)
+
+        getNews(params).then(results => { // get news with parameters of the user
+            let reqTitle = params.q
+            let reqTags = params.tags
+
+            if (reqTags != undefined) { // if there are tags filter by tags
+                reqTags = reqTags.split("|")
+                var similarityIndex = []
+                correctNews = []
+                for (x of results) { // for all news...
+                    let nCorrectTags = 0
+                    for (reqtag of reqTags) { // for all tags
+                        for (tag of x.tags) { // for all tags of the news verify if it match with some requested tag
+                            if (stringSimilarity.compareTwoStrings(reqtag, tag) > 0.3) {
+                                nCorrectTags += 1
+                                break
+                            }
+                        }
+                        if (nCorrectTags == reqTags.length) { // if the news matches with all requested tags...
+                            correctNews.push(x) // ... push it into the results
+                        }
                     }
                 }
-                if (maxIndex > 0.78) {
-                    similarityIndex.push([x, maxIndex])
-                }
+                results = correctNews
             }
-            similarityIndex.sort(function (a, b) { return b[1] - a[1] })
-            results = similarityIndex.map(function (value, index) { return value[0] })
-        }
-        if (reqTitle != undefined) {
-            let similarityIndex = []
-            for (x of results) {
-                index = (stringSimilarity.compareTwoStrings(reqTitle, x.title))
-                if (index > 0.2) {
-                    similarityIndex.push([x, index])
+            if (reqTitle != undefined) {
+                let similarityIndex = []
+                for (x of results) { // for all news...
+                    index = (stringSimilarity.compareTwoStrings(reqTitle, x.title)) // calculate title similarity
+                    if (index > 0.2) { // if they are quite similar push it into the results
+                        similarityIndex.push([x, index])
+                    }
                 }
-            }
-            similarityIndex.sort(function (a, b) { return b[1] - a[1] })
-            results = similarityIndex.map(function (value, index) { return value[0] })
-        } else {
-            results = results.sort(function (a, b) {
-                a = new Date(a.datetime)
-                b = new Date(b.datetime)
-                return b - a
-            })
+                similarityIndex.sort(function (a, b) { return b[1] - a[1] }) // sort the results by relevance
+                results = similarityIndex.map(function (value, index) { return value[0] })
+            } else { // if don't have to sort by title similarity, sort by time
+                results = results.sort(function (a, b) {
+                    a = new Date(a.datetime)
+                    b = new Date(b.datetime)
+                    return b - a
+                })
 
-        }
-        finalJSON = {}
-        finalJSON.totalResults = results.length
-        finalJSON.news = results.slice(pageSize * page, pageSize * page + pageSize)
-        return (finalJSON)
+            }
+            // create final json
+            finalJSON = {}
+            finalJSON.totalResults = results.length
+            finalJSON.page = page
+            finalJSON.pageSize = pageSize
+            finalJSON.news = results.slice(pageSize * page, pageSize * page + pageSize)
+            resolve(finalJSON) // return json
+        })
     })
 }
 
@@ -180,7 +174,6 @@ function getNews(params) {
 function setCompleteNews(news) {
     var all = []
     for (notizia of news) {
-        console.log(notizia)
         all.push(setNewsParameters(notizia))
     }
     return all
