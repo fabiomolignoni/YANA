@@ -42,12 +42,14 @@ app.delete('*', function (req, res) {
 //=============================
 // UPDATE DATA EVERY 15 MINUTES
 //=============================
+/*
 newsActions.updateNews().then(val => { // call on startup
     console.log("Updated data on startup")
 })
 setInterval(function () {
     newsActions.updateNews()
 }, 15 * 60 * 1000);
+*/
 //=============================
 //        START SERVER
 //=============================

@@ -6,16 +6,22 @@ $(document).ready(function () {
     var d = new Date();
     document.getElementById("date").innerHTML = getStringDate(d)
     loadLatest()
-    // document.getElementById("previousButton").disabled = true;
+    document.getElementById("previousButton").style.display = "none";
 })
 
 function setLatest() {
     currentPage = 0
+    document.getElementById("previousButton").style.display = "none"
+    document.getElementById("nextButton").style.display = "inline"
+    typeOfPage = "latest"
     loadLatest()
 }
 
 function searchByTopic() {
     currentPage = 0
+    document.getElementById("previousButton").style.display = "none"
+    document.getElementById("nextButton").style.display = "inline"
+    typeOfPage = "topic"
     loadByTopic()
 }
 
@@ -25,6 +31,9 @@ function loadLatest() {
         document.getElementById("news_container").innerHTML = ""
         for (x of data.news) {
             document.getElementById("news_container").innerHTML += createNewsAsString(x)
+        }
+        if ((currentPage + 1) * 10 >= data.totalResults) {
+            document.getElementById("nextButton").style.display = "none"
         }
     });
 }
@@ -48,23 +57,22 @@ function loadSources() {
 function loadByTopic() {
     let values = document.getElementById("userTags").value.split(",")
     values = values.join("|")
-    let options = ""
+    let options = "?page=" + currentPage
     var e = document.getElementById("selectCategory");
     var category = e.options[e.selectedIndex].value;
-    options += "?page=" + currentPage + "&"
     if (category != "all") {
-        options += "category=" + category + "&"
+        options += "&category=" + category + "&"
     }
     e = document.getElementById("selectSource")
     var source = e.options[e.selectedIndex].value
     if (source != "all") {
-        options += "source=" + source
+        options += "&source=" + source
     }
     e = document.getElementById("SelectTime")
     var time = e.options[e.selectedIndex].value
     if (time != "all") {
         let now = new Date()
-        options += "from="
+        options += "&from="
         switch (time) {
             case "1":
                 now.setHours(now.getHours() - 2)
@@ -81,17 +89,20 @@ function loadByTopic() {
         }
         options += now.toISOString()
     }
-    console.log("https://yana-news-aggregator.herokuapp.com/v1/news/" + values + options)
-    $.get("https://yana-news-aggregator.herokuapp.com/v1/news/" + values + options, function (data) {
+    let currentQuery = "/" + values + options
+    $.get("https://yana-news-aggregator.herokuapp.com/v1/news" + currentQuery, function (data) {
         document.getElementById("news_container").innerHTML = ""
         for (x of data.news) {
             document.getElementById("news_container").innerHTML += createNewsAsString(x)
+        }
+        if ((currentPage + 1) * 10 >= data.totalResults) {
+            document.getElementById("nextButton").style.display = "none"
         }
     });
 }
 
 function byTopic() {
-    document.getElementById("search").style.display = "block"
+    document.getElementById("search").style.display = "inline"
 }
 
 function createNewsAsString(news) {
@@ -117,7 +128,7 @@ function createSourceAsString(source) {
 function nextPage() {
     currentPage += 1
     if (currentPage == 1) {
-        document.getElementById("previousButton").disabled = false;
+        document.getElementById("previousButton").style.display = "inline";
     }
     if (typeOfPage == "latest") {
         loadLatest()
@@ -130,12 +141,13 @@ function previousPage() {
     if (currentPage > 0) {
         currentPage -= 1
         if (currentPage == 0) {
-            document.getElementById("previousButton").disabled = true;
+            document.getElementById("previousButton").style.display = "none"
         }
         if (typeOfPage == "latest") {
             loadLatest()
         } else if (typeOfPage == "topic") {
             loadByTopic()
         }
+        $('html, body').animate({ scrollTop: 0 }, 'medium');
     }
 }

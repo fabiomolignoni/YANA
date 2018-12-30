@@ -30,10 +30,7 @@
                 <button class="selection-button" onclick="loadSources()">Sources</button>
             </div>
             <div id="search" style="margin-top:1%; margin-bottom:-2%">
-                <label style=" font-family: 'Oswald', sans-serif !important;
-                text-transform: initial !important;
-                font-size: 0.7em !important;"
-                    class="labelTopic">Source:</label>
+                <label class="labelTopic">Source:</label>
                 <select id="selectSource" class="selectTopic" style="height:2em">
                     <option value="all">All</option>
                     <option value="bbc-news">BBC News</option>
@@ -62,7 +59,7 @@
                     <option value="7">Last week</option>
                     <option value="30">Last month</option>
                 </select>
-                <input id="userTags" style="height:2em; width:40em; margin-bottom:2%" type="text" placeholder="e.g:Insert comma separated topics. E.g: Juventus,European election,Piano">
+                <input id="userTags" style="height:2em; width:40em; margin-bottom:2%" type="text" placeholder="e.g:Insert comma separated topics. E.g: Brexit,Theresa May">
                 <button class="selection-button" onclick="searchByTopic()"><i class="fa fa-search"></i></button>
             </div>
         </div>
@@ -71,15 +68,10 @@
     </article>
     <div class="time">
         <button class="selection-button" id="previousButton" onclick="previousPage()"><i class="fa fa-arrow-left fa-lg"></i></button>
-        <button class="selection-button" onclick="nextPage()"><i class="fa fa-arrow-right fa-lg"></i></button>
+        <button class="selection-button" id="nextButton" onclick="nextPage()"><i class="fa fa-arrow-right fa-lg"></i></button>
     </div>
     <div class="time selection_buttons">
-        <p class="footer" style="
-        font-family: 'PT Serif', serif !important;
-        text-transform: initial !important;
-        font-size: 0.7em !important;
-        font-weight: normal !important;
-        text-align: center !important;">This
+        <p class="footer">This
             project was developed by Fabio Molignoni for the course "Introduction to service design
             and engineering" at University of Trento.
             The source code for this page and the web services can be found on GitHub, <a target="_blank" href="https://github.com/fabiomolignoni/YANA">click
