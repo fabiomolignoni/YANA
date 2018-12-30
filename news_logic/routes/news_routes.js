@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
     newsActions.postNews(req.body).then(result => {
         res.status(201).json(result)
     }).catch(e => {
-        res.status(500).json({ "errors": [{ "msg": "Dandelion quota exceeded. Try tomorrow." }] })
+        res.status(500).json({ "errors": [{ "msg": e.message }] })
     })
 })
 

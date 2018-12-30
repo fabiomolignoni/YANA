@@ -4,6 +4,7 @@
 const request = require('request')
 const utf8 = require('utf8')
 const stringSimilarity = require('string-similarity')
+var settle = require('promise-settle')
 require('dotenv').config()
 
 //=============================
@@ -22,14 +23,18 @@ const dandelion_token = process.env.DANDELION_TOKEN
 //=============================
 var postNews = function (data) {
     return new Promise(function (resolve, reject) {
-
         let recievedNews = undefined
         // recivedNews parse news as json if data being sent is a string
-        if (typeof data.news === 'string') {
-            recievedNews = JSON.parse(data.news)
-        } else {
-            recievedNews = data.news
+        try {
+            if (typeof data.news === 'string') {
+                recievedNews = JSON.parse(data.news)
+            } else {
+                recievedNews = data.news
+            }
+        } catch (e) {
+            reject(new Error("News is not an array"))
         }
+
         let dict = {} // sum of all results of the post, it will be returned
         let toBeInserted = [] // news that are not already in the DB
 
@@ -45,16 +50,22 @@ var postNews = function (data) {
                     toBeInserted.push(current)
                 }
             }
-            Promise.all(setCompleteNews(toBeInserted)).then(results => { // set complete news
-                console.log("sono dentro")
-                Promise.all(postAllNews(results, data.source)).then(postData => { // post all news
+            settle(setCompleteNews(toBeInserted)).then(results => { // set complete news
+                let validResults = []
+                results.forEach((element, index) => { // I take only the news that are complete
+                    if (element.isFulfilled()) {
+                        validResults.push(element.value())
+                    } else {
+                        dict[recievedNews[index].url] = { "errors": [element.reason().message] }
+                    }
+                })
+                settle(postAllNews(validResults, data.source)).then(postData => { // post all news
                     for (index in postData) {
-                        // create response for each news that I've posted
-                        let current = postData[index]
-                        if (current.body.statusCode != 201) { // if there are errors post errors
-                            dict[recievedNews[index].url] = { "errors": current.body.errors }
-                        } else { // otherwise return the news
-                            dict[recievedNews[index].url] = { "news": current.body }
+                        if (postData[index].isFulfilled()) {
+                            let current = postData[index].value()
+                            dict[validResults[index].url] = { "news": current.body }
+                        } else { // if there are errors post errors
+                            dict[validResults[index].url] = { "errors": current.body.errors }
                         }
                     }
                     // results
@@ -68,8 +79,11 @@ var postNews = function (data) {
                     resolve(result) // return the results
                 })
             }).catch(e => {
-                reject(e)
+                console.log(e)
+                reject(new Error("Error while trying to get news from DB"))
             })
+        }).catch(error => {
+            reject(new Error("internal error"))
         })
     })
 }
@@ -189,24 +203,34 @@ function setCompleteNews(news) {
 // given a news returns it with a category and a set of tags
 //=============================
 function setNewsParameters(news) {
-    let tagsSource = news.body // for tags is better use body, but if it is undefined, we use title
-    if (tagsSource == undefined || tagsSource == "") {
-        tagsSource = news.title
-    }
-    return Promise.all(getNewsCategory(news.title), getNewsTags(tagsSource)).then(function (listOfResults) {
-        if (listOfResults[0].categories.length > 0) {
-            news.category = listOfResults[0].categories[0].name
-        } else {
-            news.category = "general" // if dandelion was not able to set the category returns as general
+    return new Promise(function (resolve, reject) {
+
+        let tagsSource = news.body // for tags is better use body, but if it is undefined, we use title
+        if (tagsSource == undefined || tagsSource == "") {
+            tagsSource = news.title
         }
-        let tags = []
-        for (element of listOfResults[1].annotations) { // take tags only with confidence >0.75
-            if (element.confidence > 0.75 && element.title != "") {
-                tags.push(element.title)
+        settle([getNewsCategory(news.title), getNewsTags(tagsSource)]).then(function (listOfResults) {
+            if (listOfResults[0].isFulfilled() && listOfResults[1].isFulfilled()) {
+                listOfResults[0] = listOfResults[0].value()
+                listOfResults[1] = listOfResults[1].value()
+                if (listOfResults[0].categories.length > 0) {
+                    news.category = listOfResults[0].categories[0].name
+                } else {
+                    news.category = "general" // if dandelion was not able to set the category returns as general
+                }
+                let tags = []
+                for (element of listOfResults[1].annotations) { // take tags only with confidence >0.75
+                    if (element.confidence > 0.75 && element.title != "") {
+                        tags.push(element.title)
+                    }
+                }
+                news.tags = tags.join("|")
+                resolve(news)
+            } else {
+                reject(new Error("Dandelion quota exceeded. Try tomorrow."))
             }
-        }
-        news.tags = tags.join("|")
-        return news
+        })
+
     })
 }
 
@@ -224,7 +248,7 @@ function getNewsCategory(title) {
         url = encodeURI(url)
         request(url, function (error, response, body) { // take category from dandelion
             if (response.statusCode != 200) {
-                reject(response.statusCode)
+                reject(new Error("Dandelion quota exceeded. Impossible to set a category"))
             } else {
                 var finalResponse = JSON.parse(body);
                 resolve(finalResponse)
@@ -246,7 +270,7 @@ function getNewsTags(title) {
         url = encodeURI(url)
         request(url, function (error, response, body) { // take tags from dandelion
             if (response.statusCode != 200) {
-                reject(response.statusCode)
+                reject(new Error("Dandelion quota exceeded. Impossible to set tags"))
             } else {
                 var finalResponse = JSON.parse(body);
                 resolve(finalResponse)
