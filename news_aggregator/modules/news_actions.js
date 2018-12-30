@@ -3,6 +3,7 @@
 //=============================
 const request = require('request')
 require('dotenv').config()
+var settle = require('promise-settle')
 
 //=============================
 //     VARIABLES FROM ENV
@@ -19,9 +20,9 @@ const nyt_endpoint = 'https://api.nytimes.com/svc/search/v2/articlesearch.json'
 // It updates the news_headline service with the new news of the 4 sources
 //=============================
 function updateNews() {
-    return Promise.all([updateNYTEntries(), // update news for each source
-    updateBBCEntries(),
+    return settle([updateNYTEntries(), // update news for each source
     updateGuardianEntries(),
+    updateBBCEntries(),
     updateTheVergeEntries()])
 }
 
@@ -34,7 +35,7 @@ function getNews(params) {
     return new Promise(function (resolve, reject) { // do get request to news_logic
         request({ url: news_logic_endpoint + "/news", qs: params }, function (err, response, body) {
             if (response.statusCode != 200) {
-                reject(response.statusCode)
+                reject(new Error(JSON.parse(body).errors[0].msg))
             } else {
                 resolve(JSON.parse(body))
             }
@@ -56,14 +57,14 @@ function updateNYTEntries() {
             },
         }, function (err, response, body) {
             if (response.statusCode != 200) {
-                reject(response.statusCode)
+                reject(new Error("Impossible to retrive data from NYT API"))
             } else {
                 body = JSON.parse(body)
                 let newsToPost = parseNYTNews(body.response.docs) // parse news 
                 postNews('new-york-times', newsToPost).then(res => { // post the news
                     resolve(res)
                 }).catch(e => {
-                    resolve({ "errors": "impossible to save NYT news" })
+                    reject(new Error(e.message))
                 })
             }
         })
@@ -114,14 +115,14 @@ function updateGuardianEntries() {
         request.get(guardian_endpoint + "?api-key=" + guardian_key + "&type=article&page-size=100",
             function (error, response, body) { // do get to the guardian api, setting the key
                 if (response.statusCode != 200) {
-                    reject(response.statusCode)
+                    reject(new Error("Impossible to retrieve data from Guardian API"))
                 } else {
                     let news = JSON.parse(body)
                     let newsToPost = parseGuardianNews(news.response.results) // get parsed news
                     postNews('the-guardian', newsToPost).then(res => { // post the news 
                         resolve(res)
                     }).catch(e => {
-                        resolve({ "errors": "impossible to save Guardian news" })
+                        reject(new Error)
                     })
                 }
             })
@@ -155,7 +156,7 @@ function updateBBCEntries() {
     for (page of pages) {
         all.push(PostRSSFeed("/bbc" + page, "bbc-news")) // post news for each possible page
     }
-    return Promise.all(all)
+    return settle(all)
 }
 
 //=============================
@@ -168,7 +169,7 @@ function updateTheVergeEntries() {
     for (page of pages) {
         all.push(PostRSSFeed("/the-verge" + page, 'the-verge')) // post news for each possible page
     }
-    return Promise.all(all)
+    return settle(all)
 }
 
 //=============================
@@ -186,7 +187,7 @@ function postNews(source, news) {
             json: true
         }, function (err, response, bod) {
             if (response.statusCode != 201) {
-                reject(response.statusCode) // error while posting the data
+                reject(new Error(body.errors[0].msg)) // error while posting the data
             } else {
                 resolve(bod)
             }
@@ -203,13 +204,13 @@ function PostRSSFeed(page, source) {
         request.get(rss_adapter_endpoint + page, function (error, response, body) {
             // get rss adapter page
             if (response.statusCode != 200) {
-                reject(response.statusCode)
+                reject(new Error("Impossible to retrieve data for " + page))
             } else {
                 let recieved = JSON.parse(body)
                 postNews(source, recieved.news).then(result => { // post news of that page
                     resolve(result)
                 }).catch(e => {
-                    resolve({ "errors": "impossible to save rss feed on " + page })
+                    reject(new Error("Impossible to post " + page + ": " + e.message))
                 })
             }
         })

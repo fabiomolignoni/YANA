@@ -20,12 +20,24 @@ router.use(function (req, res, next) {
 // takes from bbc, the verge, nyt and independent.
 //=============================
 router.post('/', (req, res) => {
-    newsActions.updateNews().then(values => {
-        res.status(201).json(values)
-    }).catch(e => {
-        res.status(500).json({ "errors": [{ "msg": "Dandelion limit exceeded. Try tomorrow." }] })
+    newsActions.updateNews().then(results => {
+        let finalData = []
+        finalData.push(results[0].value()) // NYT news
+        finalData.push(results[1].value()) // Guardian News
+        let bbc = []
+        results[2].value().forEach(element => { // bbc news - from array of arrays to array
+            bbc = bbc.concat(element.value())
+        })
+        finalData.push(bbc)
+        let theverge = []
+        results[3].value().forEach(element => {// the verge - from array of arrays to array
+            theverge = theverge.concat(element.value())
+        })
+        finalData.push(theverge)
+        res.status(201).json(finalData)
     })
 })
+
 
 //=============================
 //          GET news
