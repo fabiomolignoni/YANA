@@ -113,13 +113,12 @@ function getNewsWithParameters(params) {
 
             if (reqTags != undefined) { // if there are tags filter by tags
                 reqTags = reqTags.split("|")
-                var similarityIndex = []
                 correctNews = []
                 for (x of results) { // for all news...
                     let nCorrectTags = 0
                     for (reqtag of reqTags) { // for all tags
                         for (tag of x.tags) { // for all tags of the news verify if it match with some requested tag
-                            if (stringSimilarity.compareTwoStrings(reqtag, tag) > 0.5) {
+                            if (tag.toLowerCase().includes(reqtag.toLowerCase()) || stringSimilarity.compareTwoStrings(reqtag, tag) > 0.5) {
                                 nCorrectTags += 1
                                 break
                             }
@@ -205,9 +204,9 @@ function setCompleteNews(news) {
 function setNewsParameters(news) {
     return new Promise(function (resolve, reject) {
 
-        let tagsSource = news.body // for tags is better use body, but if it is undefined, we use title
-        if (tagsSource == undefined || tagsSource == "") {
-            tagsSource = news.title
+        let tagsSource = news.title // for tags is better usea also the body, but if it is undefined, we use title
+        if (news.body != undefined) {
+            tagsSource += ". " + news.body // add a dot to create a complete sentence, better for dandelion.
         }
         settle([getNewsCategory(news.title), getNewsTags(tagsSource)]).then(function (listOfResults) {
             if (listOfResults[0].isFulfilled() && listOfResults[1].isFulfilled()) {
