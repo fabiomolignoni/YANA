@@ -42,22 +42,31 @@ function getNews(params) {
         })
     })
 }
-
+//=============================
+// sleep for ms milliseconds
+// returns a promise
+//=============================
+function sleep(ms, i) {
+    return new Promise(resolve => setTimeout(function () {
+        resolve(i)
+    }, ms));
+}
 //=============================
 //      UPDATE NYT ENTRIES
 // takes news from nyt api and update the news_logic service
 //=============================
-function updateNYTEntries() {
+function postNYTEntries(page) {
     return new Promise(function (resolve, reject) {
         request.get({ // do get to the api
             url: nyt_endpoint,
             qs: {
                 'api-key': nyt_key, // api setting
-                'begin_date': parseInt(getNYTDate())
+                'page': page,
+                'sort': "newest"
             },
         }, function (err, response, body) {
             if (response.statusCode != 200) {
-                reject(new Error("Impossible to retrive data from NYT API"))
+                reject(new Error("Impossible to retrieve data from NYT API"))
             } else {
                 body = JSON.parse(body)
                 let newsToPost = parseNYTNews(body.response.docs) // parse news 
@@ -69,8 +78,9 @@ function updateNYTEntries() {
             }
         })
     })
-
 }
+
+
 
 //=============================
 //       PARSE NYT NEWS
@@ -91,19 +101,28 @@ function parseNYTNews(news) {
 }
 
 //=============================
-//        GET NYT DATE
-// parse current date for the nyt api
+//       UPDATE NYT NEWS
+// get NYT news from API (last 100 published)
 //=============================
-function getNYTDate() {
-    var d = new Date(), // date format suitable for the nyt api
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate() - 1,
-        year = d.getFullYear();
+function updateNYTEntries() {
+    return new Promise(function (resolve, reject) {
 
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
-
-    return [year, month, day].join('');
+        var results = []
+        for (var i = 0; i < 10; i++) { // limit to 5 calls each second
+            sleep(i * 1100, i).then((val) => {
+                postNYTEntries(val).then(values => {
+                    results = results.concat(values)
+                    if (val == 9) {
+                        resolve(results)
+                    }
+                }).catch(e => {
+                    results.push({ "errors": [{ "msg": e.message }] })
+                    if (val == 9)
+                        resolve(results)
+                })
+            })
+        }
+    })
 }
 
 //=============================
