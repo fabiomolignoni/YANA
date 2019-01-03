@@ -63,11 +63,13 @@
                 <button class="selection-button" onclick="searchByTopic()"><i class="fa fa-search"></i></button>
             </div>
         </div>
+        <span id="loading-text" class="time" style="text-align: center">Please wait. Loading news...</span>
         <section id="news_container">
         </section>
     </article>
     <div class="time">
         <button class="selection-button" id="previousButton" onclick="previousPage()"><i class="fa fa-arrow-left fa-lg"></i></button>
+        <span id="currentPage">0</span>/<span id="totalPage">0</span>
         <button class="selection-button" id="nextButton" onclick="nextPage()"><i class="fa fa-arrow-right fa-lg"></i></button>
     </div>
     <div class="time selection_buttons">

@@ -6,11 +6,11 @@ $(document).keypress(function (e) {
     var keycode = (e.keyCode ? e.keyCode : e.which);
     if (keycode == '13') {
         if (typeOfPage == "topic") {
-            currentPage = 0
-            loadByTopic()
+            searchByTopic()
         }
     }
-});
+})
+
 
 $(document).ready(function () {
     var d = new Date();
@@ -37,8 +37,12 @@ function searchByTopic() {
 
 function loadLatest() {
     document.getElementById("search").style.display = "none"
+    document.getElementById("loading-text").style.display = "block"
     $.get("https://yana-news-aggregator.herokuapp.com/v1/news?page=" + currentPage, function (data) {
         document.getElementById("news_container").innerHTML = ""
+        document.getElementById("currentPage").innerHTML = "" + (currentPage + 1)
+        document.getElementById("totalPage").innerHTML = Math.floor(data.totalResults / 10) + 1
+        document.getElementById("loading-text").style.display = "none"
         for (x of data.news) {
             document.getElementById("news_container").innerHTML += createNewsAsString(x)
         }
@@ -65,6 +69,7 @@ function loadSources() {
 }
 
 function loadByTopic() {
+    document.getElementById("loading-text").style.display = "block"
     let values = document.getElementById("userTags").value.split(",")
     values = values.join("|")
     let options = "?page=" + currentPage
@@ -100,9 +105,11 @@ function loadByTopic() {
         options += now.toISOString()
     }
     let currentQuery = "/" + values + options
-    console.log(currentQuery)
     $.get("https://yana-news-aggregator.herokuapp.com/v1/news" + currentQuery, function (data) {
         document.getElementById("news_container").innerHTML = ""
+        document.getElementById("currentPage").innerHTML = currentPage + 1
+        document.getElementById("totalPage").innerHTML = Math.floor(data.totalResults / 10) + 1
+        document.getElementById("loading-text").style.display = "none"
         for (x of data.news) {
             document.getElementById("news_container").innerHTML += createNewsAsString(x)
         }
