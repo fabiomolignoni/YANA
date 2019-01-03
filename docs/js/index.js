@@ -2,6 +2,16 @@
 var currentPage = 0
 var typeOfPage = "latest"
 
+$(document).keypress(function (e) {
+    var keycode = (e.keyCode ? e.keyCode : e.which);
+    if (keycode == '13') {
+        if (typeOfPage == "topic") {
+            currentPage = 0
+            loadByTopic()
+        }
+    }
+});
+
 $(document).ready(function () {
     var d = new Date();
     document.getElementById("date").innerHTML = getStringDate(d)
@@ -90,6 +100,7 @@ function loadByTopic() {
         options += now.toISOString()
     }
     let currentQuery = "/" + values + options
+    console.log(currentQuery)
     $.get("https://yana-news-aggregator.herokuapp.com/v1/news" + currentQuery, function (data) {
         document.getElementById("news_container").innerHTML = ""
         for (x of data.news) {
@@ -103,6 +114,7 @@ function loadByTopic() {
 
 function byTopic() {
     document.getElementById("search").style.display = "inline"
+    typeOfPage = "topic"
 }
 
 function createNewsAsString(news) {
