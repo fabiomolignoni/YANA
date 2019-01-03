@@ -61,6 +61,7 @@ function getStringDate(d) {
 function loadSources() {
     $.get("https://yana-news-aggregator.herokuapp.com/v1/sources", function (data) {
         document.getElementById("search").style.display = "none"
+        document.getElementById("loading-text").style.display = "none"
         document.getElementById("news_container").innerHTML = ""
         for (x of data) {
             document.getElementById("news_container").innerHTML += createSourceAsString(x)
