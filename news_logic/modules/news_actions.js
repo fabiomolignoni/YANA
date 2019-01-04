@@ -243,7 +243,7 @@ function getNewsCategory(title) {
     return new Promise(function (resolve, reject) {
         // create the url
         let url = dandelion_endpoint + 'cl/v1/?model=54cf2e1c-e48a-4c14-bb96-31dc11f84eac&token=' + dandelion_token
-        url += '&text=' + title + "&min_score=0.15"
+        url += '&text=' + title + "&min_score=0.4"
         url = encodeURI(url)
         request(url, function (error, response, body) { // take category from dandelion
             if (response.statusCode != 200) {
