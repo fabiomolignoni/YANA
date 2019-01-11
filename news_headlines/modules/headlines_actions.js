@@ -2,7 +2,8 @@
 //           IMPORT
 //=============================
 var Headline = require('../models/headline_model')
-var possibleCategories = ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technology', 'politics', 'general']
+var possibleCategories = ['Society', 'Arts', 'Computers', 'Business', 'Health',
+    'Science', 'Home', 'Games', 'Recreation', 'Sports']
 
 //=============================
 //        postHeadline
@@ -60,7 +61,7 @@ var searchHeadlines = function (params) {
             }
         }
         if (params.category != undefined) {
-            query.category = params.category
+            query.category = { $in: params.category.split("|") }
         }
         Headline.find(query).exec(function (err, headlines) {
             if (err) {

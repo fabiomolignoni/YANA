@@ -34,7 +34,8 @@ var HeadlineSchema = new Schema({
     category: { // category has a list of possible values
         type: String,
         required: true,
-        enum: ['economy', 'business', 'entertainment', 'sport', 'health', 'science-environment', 'technology', 'politics', 'general']
+        enum: ['Society', 'Arts', 'Computers', 'Business', 'Health',
+            'Science', 'Home', 'Games', 'Recreation', 'Sports']
     },
     tags: {
         type: Array,
