@@ -17,6 +17,7 @@
     "promise-settle": "^0.3.0",
     "request": "^2.88.0",
     "string-similarity": "^3.0.0",
+    "textract": "^2.4.0",
     "utf8": "^3.0.0"
   }
 }

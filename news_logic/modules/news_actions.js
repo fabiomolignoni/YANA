@@ -2,9 +2,9 @@
 //           IMPORT
 //=============================
 const request = require('request')
-const utf8 = require('utf8')
 const stringSimilarity = require('string-similarity')
 var settle = require('promise-settle')
+var textract = require('textract')
 require('dotenv').config()
 
 //=============================
@@ -210,7 +210,7 @@ function setNewsParameters(news) {
         if (news.body != undefined) {
             tagsSource += ". " + news.body // add a dot to create a complete sentence, better for uclassify.
         }
-        settle([getNewsCategory(news.title), getNewsTags(tagsSource)]).then(function (listOfResults) {
+        settle([getNewsCategory(news.url), getNewsTags(tagsSource)]).then(function (listOfResults) {
             if (listOfResults[0].isFulfilled() && listOfResults[1].isFulfilled()) {
                 listOfResults[0] = listOfResults[0].value()
                 listOfResults[1] = listOfResults[1].value()
@@ -228,27 +228,32 @@ function setNewsParameters(news) {
 //=============================
 //       GET NEWS CATEGORY
 // returns category of a news using uClassify
-// returns a promise
+// first of all take text from original site and use it to classify the news
+// @param url is the url of the news
+// returns a promise which resolves the category name
 //=============================
-function getNewsCategory(text) {
+function getNewsCategory(url) {
     return new Promise(function (resolve, reject) {
-        const req = { "texts": [text] } // create body for the request to uclassify
-        request({
-            headers: {
-                Authorization: 'Token ' + uclassify_token,
-                'Content-Type': 'application/json'
-            },
-            uri: uclassify_endpoint + 'uClassify/Topics/en/classify',
-            body: req,
-            method: 'POST',
-            json: true
-        }, function (err, res, body) {
-            if (res.statusCode != 200) { // I have only 500 free query
-                reject(new Error("uClassify quota exceeded. Impossible to set a category"))
-            } else {
-                body[0].classification.sort((a, b) => b.p - a.p) // sort by decreasing probability
-                resolve(body[0].classification[0].className) // return className of most probable
-            }
+        textract.fromUrl(url, function (error, text) {
+            console.log(text)
+            const req = { "texts": [text] } // create body for the request to uclassify
+            request({
+                headers: {
+                    Authorization: 'Token ' + uclassify_token,
+                    'Content-Type': 'application/json'
+                },
+                uri: uclassify_endpoint + 'uClassify/Topics/en/classify',
+                body: req,
+                method: 'POST',
+                json: true
+            }, function (err, res, body) {
+                if (res.statusCode != 200) { // I have only 500 free query
+                    reject(new Error("uClassify quota exceeded. Impossible to set a category"))
+                } else {
+                    body[0].classification.sort((a, b) => b.p - a.p) // sort by decreasing probability
+                    resolve(body[0].classification[0].className) // return className of most probable
+                }
+            })
         })
     })
 }
