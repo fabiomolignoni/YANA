@@ -206,11 +206,11 @@ function setCompleteNews(news) {
 function setNewsParameters(news) {
     return new Promise(function (resolve, reject) {
 
-        let tagsSource = news.title // for tags is better use also the body, but if it is undefined, we use title
+        let tagsSource = news.title // for tags and category is better use also the body, but if it is undefined, we use title
         if (news.body != undefined) {
             tagsSource += ". " + news.body // add a dot to create a complete sentence, better for uclassify.
         }
-        settle([getNewsCategory(news.url), getNewsTags(tagsSource)]).then(function (listOfResults) {
+        settle([getNewsCategory(tagsSource), getNewsTags(tagsSource)]).then(function (listOfResults) {
             if (listOfResults[0].isFulfilled() && listOfResults[1].isFulfilled()) {
                 listOfResults[0] = listOfResults[0].value()
                 listOfResults[1] = listOfResults[1].value()
@@ -218,7 +218,7 @@ function setNewsParameters(news) {
                 news.tags = listOfResults[1].join("|") // set tags as concatenation
                 resolve(news) // return the news
             } else {
-                reject(new Error("Dandelion quota exceeded. Try tomorrow."))
+                reject(new Error("External API quota exceeded. Try tomorrow."))
             }
         })
 
@@ -232,28 +232,25 @@ function setNewsParameters(news) {
 // @param url is the url of the news
 // returns a promise which resolves the category name
 //=============================
-function getNewsCategory(url) {
+function getNewsCategory(text) {
     return new Promise(function (resolve, reject) {
-        textract.fromUrl(url, function (error, text) {
-            console.log(text)
-            const req = { "texts": [text] } // create body for the request to uclassify
-            request({
-                headers: {
-                    Authorization: 'Token ' + uclassify_token,
-                    'Content-Type': 'application/json'
-                },
-                uri: uclassify_endpoint + 'uClassify/Topics/en/classify',
-                body: req,
-                method: 'POST',
-                json: true
-            }, function (err, res, body) {
-                if (res.statusCode != 200) { // I have only 500 free query
-                    reject(new Error("uClassify quota exceeded. Impossible to set a category"))
-                } else {
-                    body[0].classification.sort((a, b) => b.p - a.p) // sort by decreasing probability
-                    resolve(body[0].classification[0].className) // return className of most probable
-                }
-            })
+        const req = { "texts": [text] } // create body for the request to uclassify
+        request({
+            headers: {
+                Authorization: 'Token ' + uclassify_token,
+                'Content-Type': 'application/json'
+            },
+            uri: uclassify_endpoint + 'uClassify/Topics/en/classify',
+            body: req,
+            method: 'POST',
+            json: true
+        }, function (err, res, body) {
+            if (res.statusCode != 200) { // I have only 500 free query
+                reject(new Error("uClassify quota exceeded. Impossible to set a category"))
+            } else {
+                body[0].classification.sort((a, b) => b.p - a.p) // sort by decreasing probability
+                resolve(body[0].classification[0].className) // return className of most probable
+            }
         })
     })
 }

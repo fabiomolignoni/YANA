@@ -105,19 +105,19 @@ function parseNYTNews(news) {
 // get NYT news from API (last 50 published)
 //=============================
 function updateNYTEntries() {
+    let nPages = 5 // n of pages of API to get
     return new Promise(function (resolve, reject) {
-
         var results = []
-        for (var i = 0; i < 5; i++) { // it returns only 10 news at a time, I have to get at least 50
+        for (var i = 0; i < nPages; i++) { // it returns only 10 news at a time, I have to get at least 50
             sleep(i * 1100, i).then((val) => { // allows only 1 query per second, I have to wait
                 postNYTEntries(val).then(values => {
                     results = results.concat(values)
-                    if (val == 9) {
+                    if (val == nPages - 1) {
                         resolve(results)
                     }
                 }).catch(e => {
                     results.push({ "errors": [{ "msg": e.message }] })
-                    if (val == 9)
+                    if (val == nPages - 1)
                         resolve(results)
                 })
             })
@@ -204,11 +204,11 @@ function postNews(source, news) {
             url: news_logic_endpoint + "/news",
             body: newsToSend,
             json: true
-        }, function (err, response, bod) {
+        }, function (err, response, body) {
             if (response.statusCode != 201) {
                 reject(new Error(body.errors[0].msg)) // error while posting the data
             } else {
-                resolve(bod)
+                resolve(body)
             }
         })
     })
