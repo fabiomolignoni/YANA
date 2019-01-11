@@ -102,14 +102,14 @@ function parseNYTNews(news) {
 
 //=============================
 //       UPDATE NYT NEWS
-// get NYT news from API (last 100 published)
+// get NYT news from API (last 50 published)
 //=============================
 function updateNYTEntries() {
     return new Promise(function (resolve, reject) {
 
         var results = []
-        for (var i = 0; i < 10; i++) { // limit to 5 calls each second
-            sleep(i * 1100, i).then((val) => {
+        for (var i = 0; i < 5; i++) { // it returns only 10 news at a time, I have to get at least 50
+            sleep(i * 1100, i).then((val) => { // allows only 1 query per second, I have to wait
                 postNYTEntries(val).then(values => {
                     results = results.concat(values)
                     if (val == 9) {
