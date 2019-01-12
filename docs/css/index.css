@@ -1,3 +1,11 @@
+img{
+  width:100%
+}
+
+blockquote {
+  font-size: 1em !important;
+}
+
 ::selection {
     background: #808080;
     color: #E6E6E6;
