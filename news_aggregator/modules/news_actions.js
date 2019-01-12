@@ -34,7 +34,9 @@ function updateNews() {
 function getNews(params) {
     return new Promise(function (resolve, reject) { // do get request to news_logic
         request({ url: news_logic_endpoint + "/news", qs: params }, function (err, response, body) {
-            if (response.statusCode != 200) {
+            if (response == undefined) {
+                reject(new Error("Internal error. Please retry."))
+            } else if (response.statusCode != 200) {
                 reject(new Error(JSON.parse(body).errors[0].msg))
             } else {
                 resolve(JSON.parse(body))
@@ -65,7 +67,9 @@ function postNYTEntries(page) {
                 'sort': "newest"
             },
         }, function (err, response, body) {
-            if (response.statusCode != 200) {
+            if (response == undefined) {
+                reject(new Error("Internal error. Please retry."))
+            } else if (response.statusCode != 200) {
                 reject(new Error("Impossible to retrieve data from NYT API"))
             } else {
                 body = JSON.parse(body)
@@ -133,7 +137,9 @@ function updateGuardianEntries() {
     return new Promise(function (resolve, reject) {
         request.get(guardian_endpoint + "?api-key=" + guardian_key + "&type=article&page-size=100",
             function (error, response, body) { // do get to the guardian api, setting the key
-                if (response.statusCode != 200) {
+                if (response == undefined) {
+                    reject(new Error("Internal error. Please retry."))
+                } else if (response.statusCode != 200) {
                     reject(new Error("Impossible to retrieve data from Guardian API"))
                 } else {
                     let news = JSON.parse(body)
@@ -205,7 +211,9 @@ function postNews(source, news) {
             body: newsToSend,
             json: true
         }, function (err, response, body) {
-            if (response.statusCode != 201) {
+            if (response == undefined) {
+                reject(new Error("Internal error. Please retry."))
+            } else if (response.statusCode != 201) {
                 reject(new Error(body.errors[0].msg)) // error while posting the data
             } else {
                 resolve(body)
@@ -222,7 +230,9 @@ function PostRSSFeed(page, source) {
     return new Promise(function (resolve, reject) {
         request.get(rss_adapter_endpoint + page, function (error, response, body) {
             // get rss adapter page
-            if (response.statusCode != 200) {
+            if (response == undefined) {
+                reject(new Error("Internal error. Please retry."))
+            } else if (response.statusCode != 200) {
                 reject(new Error("Impossible to retrieve data for " + page))
             } else {
                 let recieved = JSON.parse(body)

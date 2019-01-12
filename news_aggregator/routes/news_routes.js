@@ -23,6 +23,7 @@ router.post('/', (req, res) => {
     newsActions.updateNews().then(results => {
         let finalData = []
         finalData.push(results[0].value()) // NYT news
+
         finalData.push(results[1].value()) // Guardian News
         let bbc = []
         results[2].value().forEach(element => { // bbc news - from array of arrays to array

@@ -53,36 +53,38 @@ var postNews = function (data) {
                     toBeInserted.push(current)
                 }
             }
-            settle(setCompleteNews(toBeInserted)).then(results => { // set complete news
-                let validResults = []
-                results.forEach((element, index) => { // I take only the news that are complete
-                    if (element.isFulfilled()) {
-                        validResults.push(element.value())
-                    } else {
-                        dict[recievedNews[index].url] = { "errors": [element.reason().message] }
-                    }
-                })
-                settle(postAllNews(validResults, data.source)).then(postData => { // post all news
-                    for (index in postData) {
-                        if (postData[index].isFulfilled()) {
-                            let current = postData[index].value()
-                            dict[validResults[index].url] = { "news": current.body }
-                        } else { // if there are errors post errors
-                            dict[validResults[index].url] = { "errors": current.body.errors }
+            setCompleteNews(toBeInserted).then(complete => {
+                settle(complete).then(results => { // set complete news
+                    let validResults = []
+                    results.forEach((element, index) => { // I take only the news that are complete
+                        if (element.isFulfilled()) {
+                            validResults.push(element.value())
+                        } else {
+                            dict[recievedNews[index].url] = { "errors": [element.reason().message] }
                         }
-                    }
-                    // results
-                    let result = [] // now transform a dictionary into an array to return the results
-                    for (let key in dict) {
-                        current = {}
-                        current.url = key
-                        current.response = dict[key]
-                        result.push(current)
-                    }
-                    resolve(result) // return the results
+                    })
+                    settle(postAllNews(validResults, data.source)).then(postData => { // post all news
+                        for (index in postData) {
+                            if (postData[index].isFulfilled()) {
+                                let current = postData[index].value()
+                                dict[validResults[index].url] = { "news": current.body }
+                            } else { // if there are errors post errors
+                                dict[validResults[index].url] = { "errors": current.body.errors }
+                            }
+                        }
+                        // results
+                        let result = [] // now transform a dictionary into an array to return the results
+                        for (let key in dict) {
+                            current = {}
+                            current.url = key
+                            current.response = dict[key]
+                            result.push(current)
+                        }
+                        resolve(result) // return the results
+                    })
+                }).catch(e => {
+                    reject(new Error("Error while trying to get news from DB"))
                 })
-            }).catch(e => {
-                reject(new Error("Error while trying to get news from DB"))
             })
         }).catch(error => {
             reject(new Error("internal error"))
@@ -176,7 +178,9 @@ function getNews(params) {
             urlNews += name + "=" + params[name] + "&"
         }
         request(urlNews, function (error, response, body) { // do the get to the service
-            if (response.statusCode != 200) { // if there's some error reject
+            if (response == undefined) {
+                reject(new Error("Internal error. Please retry."))
+            } else if (response.statusCode != 200) { // if there's some error reject
                 reject(response.statusCode)
             } else {
                 resolve(JSON.parse(body))
@@ -191,11 +195,29 @@ function getNews(params) {
 // with .then you can access to the complete news (with category and tags)
 //=============================
 function setCompleteNews(news) {
-    var all = []
-    for (notizia of news) {
-        all.push(setNewsParameters(notizia))
-    }
-    return all
+    return new Promise(function (resolve, reject) {
+        var all = []
+        var categoryText = []
+        for (notizia of news) {
+            let tagsSource = notizia.title // for tags and category is better use also the body, but if it is undefined, we use title
+            if (notizia.body != undefined) {
+                tagsSource += ". " + notizia.body // add a dot to create a complete sentence, better for uclassify.
+            }
+            categoryText.push("text " + tagsSource)
+        }
+        if (categoryText.length > 0) {
+            getNewsCategory(categoryText).then(res => {
+                for (let i = 0; i < res.length; i++) {
+                    res[i].classification.sort((a, b) => b.p - a.p) // sort by decreasing probability
+                    category = res[i].classification[0].className
+                    all.push(setNewsParameters(news[i], category))
+                }
+                resolve(all)
+            }).catch(e => reject(e))
+        } else {
+            resolve([])
+        }
+    })
 }
 
 
@@ -203,23 +225,18 @@ function setCompleteNews(news) {
 //     SET NEWS PARAMETERS
 // given a news returns it with a category and a set of tags
 //=============================
-function setNewsParameters(news) {
+function setNewsParameters(news, category) {
     return new Promise(function (resolve, reject) {
-
         let tagsSource = news.title // for tags and category is better use also the body, but if it is undefined, we use title
         if (news.body != undefined) {
             tagsSource += ". " + news.body // add a dot to create a complete sentence, better for uclassify.
         }
-        settle([getNewsCategory(tagsSource), getNewsTags(tagsSource)]).then(function (listOfResults) {
-            if (listOfResults[0].isFulfilled() && listOfResults[1].isFulfilled()) {
-                listOfResults[0] = listOfResults[0].value()
-                listOfResults[1] = listOfResults[1].value()
-                news.category = listOfResults[0] // set category
-                news.tags = listOfResults[1].join("|") // set tags as concatenation
-                resolve(news) // return the news
-            } else {
-                reject(new Error("External API quota exceeded. Try tomorrow."))
-            }
+        getNewsTags(tagsSource).then(function (value) {
+            news.category = category // set category
+            news.tags = value.join("|") // set tags as concatenation
+            resolve(news) // return the news       
+        }).catch(e => {
+            reject(new Error("External API quota exceeded. Try tomorrow."))
         })
 
     })
@@ -232,9 +249,9 @@ function setNewsParameters(news) {
 // @param url is the url of the news
 // returns a promise which resolves the category name
 //=============================
-function getNewsCategory(text) {
+function getNewsCategory(texts) {
     return new Promise(function (resolve, reject) {
-        const req = { "texts": [text] } // create body for the request to uclassify
+        const req = { "texts": texts } // create body for the request to uclassify
         request({
             headers: {
                 Authorization: 'Token ' + uclassify_token,
@@ -245,11 +262,12 @@ function getNewsCategory(text) {
             method: 'POST',
             json: true
         }, function (err, res, body) {
-            if (res.statusCode != 200) { // I have only 500 free query
+            if (res == undefined) {
+                reject(new Error("Internal error. Please retry."))
+            } else if (res.statusCode != 200) { // I have only 500 free query
                 reject(new Error("uClassify quota exceeded. Impossible to set a category"))
             } else {
-                body[0].classification.sort((a, b) => b.p - a.p) // sort by decreasing probability
-                resolve(body[0].classification[0].className) // return className of most probable
+                resolve(body) // return className of most probable
             }
         })
     })
@@ -267,7 +285,9 @@ function getNewsTags(title) {
         url += '&text=' + title
         url = encodeURI(url)
         request(url, function (error, response, body) { // take tags from dandelion
-            if (response.statusCode != 200) { // only 1000 free query
+            if (response == undefined) {
+                reject(new Error("Internal error. Please retry."))
+            } else if (response.statusCode != 200) { // only 1000 free query
                 reject(new Error("Dandelion quota exceeded. Impossible to set tags"))
             } else {
                 var finalResponse = JSON.parse(body);
@@ -302,7 +322,6 @@ function postANews(news) {
             body: news,
             json: true
         }, function optionalCallback(err, httpResponse, body) {
-            body.statusCode = httpResponse.statusCode
             resolve({ body })
         })
     })
