@@ -76,7 +76,8 @@ function loadByTopic() {
     document.getElementById("loading-text").style.display = "block"
     let values = document.getElementById("userTags").value.split(",")
     values = values.join("|")
-    let options = "?page=" + currentPage
+    let options = "?page=" + currentPage + "&tags=" + values
+
     var e = document.getElementById("selectCategory");
     var category = e.options[e.selectedIndex].value;
     if (category != "all") {
@@ -108,8 +109,7 @@ function loadByTopic() {
         }
         options += now.toISOString()
     }
-    let currentQuery = "/" + values + options
-    $.get("https://yana-news-aggregator.herokuapp.com/v1/news" + currentQuery, function (data) {
+    $.get("https://yana-news-aggregator.herokuapp.com/v1/news" + options, function (data) {
         document.getElementById("news_container").innerHTML = ""
         document.getElementById("currentPage").innerHTML = currentPage + 1
         document.getElementById("totalPage").innerHTML = Math.floor(data.totalResults / 10) + 1

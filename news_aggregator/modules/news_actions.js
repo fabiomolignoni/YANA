@@ -10,6 +10,7 @@ var settle = require('promise-settle')
 //=============================
 const rss_adapter_endpoint = process.env.RSS_ADAPTER || 'localhost:8081/v1'
 const news_logic_endpoint = process.env.NEWS_LOGIC || 'http://localhost:8082/v1'
+const news_headlines_endpoint = process.env.NEWS_HEADLINES || 'localhost:8080/v1'
 const guardian_key = process.env.GUARDIAN_KEY
 const nyt_key = process.env.NYT_KEY
 const guardian_endpoint = 'https://content.guardianapis.com/search'
@@ -214,7 +215,9 @@ function postNews(source, news) {
             if (response == undefined) {
                 reject(new Error("Internal error. Please retry."))
             } else if (response.statusCode != 201) {
-                reject(new Error(body.errors[0].msg)) // error while posting the data
+                if (body.errors != undefined && body.errors.length > 0)
+                    reject(new Error(body.errors[0].msg)) // error while posting the data
+                else reject(new Error("Error while posting data"))
             } else {
                 resolve(body)
             }
@@ -246,5 +249,20 @@ function PostRSSFeed(page, source) {
     })
 }
 
+var getNewsWithId = function (id) {
+    console.log(id)
+    return new Promise(function (resolve, reject) {
+        request(news_headlines_endpoint + "/headlines/" + id, function (err, response, body) {
+            if (response.statusCode != 200) {
+                reject("News not found")
+            } else {
+                let res = JSON.parse(body)
+                resolve(res)
+            }
+        })
+    })
+}
+
 module.exports.updateNews = updateNews
 module.exports.getNews = getNews
+module.exports.getNewsWithId = getNewsWithId

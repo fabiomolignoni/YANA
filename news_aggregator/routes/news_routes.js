@@ -54,29 +54,23 @@ router.get('/', (req, res) => {
     params.q = req.query.q
     params.page = req.query.page
     params.pageSize = req.query.pageSize
+    params.tags = req.query.tags // set tags
     newsActions.getNews(params).then(results => { // get news
         res.json(results)
     })
 })
 
+
 //=============================
-//          GET news/:tags
-// get all news filtered by parameters sent by the user
-// and that match with the tags specified in the path
+//        GET v1/news/:id
+// return news by a particular id
 //=============================
-router.get('/:tags', (req, res) => {
-    let params = {} // set parameters
-    params.source = req.query.source
-    params.datetime = req.query.datetime
-    params.category = req.query.category
-    params.from = req.query.from
-    params.to = req.query.to
-    params.q = req.query.q
-    params.page = req.query.page
-    params.pageSize = req.query.pageSize
-    params.tags = req.params.tags // set tags
-    newsActions.getNews(params).then(results => { // get news
-        res.json(results)
+router.get('/:id', function (req, res) {
+    newsActions.getNewsWithId(req.params.id).then(result => {
+        res.status(200).json(result)
+    }).catch(e => {
+        console.log(e)
+        res.status(404).json({ "errors": [{ "msg": e }] })
     })
 })
 
