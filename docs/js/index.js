@@ -53,6 +53,22 @@ function loadLatest() {
     });
 }
 
+function updateNews() {
+    document.getElementById("news_container").innerHTML = ""
+    document.getElementById("loading-text").style.display = "block"
+    $.post("https://yana-news-aggregator.herokuapp.com/v1/news", function (data) {
+        console.log(typeOfPage)
+        if (typeOfPage == "topic") {
+            loadByTopic()
+        } else if (typeOfPage == "latest") {
+            loadLatest()
+        } else {
+            loadSources()
+        }
+    })
+
+}
+
 function getStringDate(d) {
     var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
