@@ -162,6 +162,10 @@ blockquote {
     background-color: #FAFBBA;
     padding: 1em; 
     margin-bottom:2em;
+    border-style: solid;
+    border-width: 0.2em;
+    border-color: #E0E1A7;
+    box-shadow: 5px 5px 5px #CFD09E;
   }
   
   @media only all and (min-width: 600px) {
