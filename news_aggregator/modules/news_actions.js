@@ -250,7 +250,6 @@ function PostRSSFeed(page, source) {
 }
 
 var getNewsWithId = function (id) {
-    console.log(id)
     return new Promise(function (resolve, reject) {
         request(news_headlines_endpoint + "/headlines/" + id, function (err, response, body) {
             if (response.statusCode != 200) {

@@ -85,6 +85,8 @@ var postNews = function (data) {
                 }).catch(e => {
                     reject(new Error("Error while trying to get news from DB"))
                 })
+            }).catch(error => {
+                reject(error)
             })
         }).catch(error => {
             reject(new Error("internal error"))

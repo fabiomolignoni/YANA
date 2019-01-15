@@ -40,15 +40,16 @@ app.delete('*', function (req, res) {
 })
 
 //=============================
-// UPDATE DATA EVERY 15 MINUTES
+// UPDATE DATA EVERY MINUTE
 //=============================
-
 newsActions.updateNews().then(val => { // call on startup
     console.log("Updated data on startup")
-})
+}).catch(e => console.log("Impossible to update news"))
 setInterval(function () {
-    newsActions.updateNews()
-}, 15 * 60 * 1000);
+    newsActions.updateNews().then(val => {
+        console.log("News updated")
+    }).catch(e => console.log("Impossible to update news"))
+}, 60 * 1000);
 
 //=============================
 //        START SERVER
